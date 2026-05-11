@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+
+# Compilacion de TypeScript
+dist/
+build/
+
+# Variables de entorno (NUNCA subir secretos a Git)
+.env
+.env.local
+.env.production
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Archivos del editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Cobertura de tests
+coverage/
+
+# Cache
+.cache/

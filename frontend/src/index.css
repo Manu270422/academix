@@ -1,0 +1,19 @@
+/* Las tres directivas obligatorias de TailwindCSS.
+   Sin estas tres lineas, ninguna clase de Tailwind funciona. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos base globales del proyecto.
+   Aqui defino reglas que se aplican en TODA la aplicacion. */
+@layer base {
+  html {
+    /* Suaviza el scroll cuando navego entre secciones. */
+    scroll-behavior: smooth;
+  }
+
+  body {
+    /* Aplico la fuente Inter a todo el body. */
+    @apply font-sans antialiased text-gray-900 bg-gray-50;
+  }
+}

@@ -1,0 +1,126 @@
+// ============================================================
+// SCHEMA DE PRISMA - ACADEMIX
+// ============================================================
+// Aqui defino la estructura completa de mi base de datos.
+// Prisma lee este archivo y genera dos cosas a partir de el:
+//   1. Las migraciones SQL para crear/modificar tablas en MySQL.
+//   2. Un cliente TypeScript con tipos para hacer consultas seguras.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+// Estados posibles de una tarea (pendiente, en progreso, completada).
+// Estos coinciden con la HU07 (cambio de estado de tareas).
+enum EstadoTarea {
+  PENDIENTE
+  EN_PROGRESO
+  COMPLETADA
+}
+
+// Prioridad de la tarea: la anado como mejora a las HU originales
+// para que el estudiante pueda priorizar visualmente sus pendientes.
+enum Prioridad {
+  BAJA
+  MEDIA
+  ALTA
+}
+
+// ============================================================
+// MODELO USUARIO
+// ============================================================
+// Representa al estudiante que usa Academix.
+// Cumple con la HU01 (registro) y HU02 (inicio de sesion).
+model Usuario {
+  id Int @id @default(autoincrement())
+
+  // El email es UNICO: no puede haber dos usuarios con el mismo email.
+  email String @unique @db.VarChar(150)
+
+  // Nombre completo del estudiante. Maximo 100 caracteres.
+  nombre String @db.VarChar(100)
+
+  // IMPORTANTE: aqui guardo el HASH de la contrasena, NUNCA la contrasena en claro.
+  passwordHash String @map("password_hash") @db.VarChar(255)
+
+  // Timestamps automaticos para auditoria y trazabilidad.
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // RELACION: un usuario puede tener MUCHAS materias (1 a N).
+  // El "onDelete: Cascade" significa que si borro un usuario,
+  // automaticamente se borran todas sus materias (y por cascada sus tareas).
+  materias Materia[]
+
+  @@map("usuarios")
+}
+
+// ============================================================
+// MODELO MATERIA
+// ============================================================
+// Cumple con la HU03, HU04, HU05 (gestion de materias).
+model Materia {
+  id Int @id @default(autoincrement())
+
+  nombre String @db.VarChar(100)
+
+  // Color en formato hex (#RRGGBB) para identificar visualmente cada materia.
+  color String? @db.VarChar(7)
+
+  descripcion String? @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // RELACION: cada materia pertenece a UN usuario.
+  usuarioId Int     @map("usuario_id")
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  // RELACION: una materia puede tener MUCHAS tareas (1 a N).
+  tareas Tarea[]
+
+  @@index([usuarioId])
+  @@map("materias")
+}
+
+// ============================================================
+// MODELO TAREA
+// ============================================================
+// Cumple con la HU06, HU07, HU08 (gestion de tareas).
+model Tarea {
+  id Int @id @default(autoincrement())
+
+  titulo String @db.VarChar(200)
+
+  descripcion String? @db.Text
+
+  // Fecha y hora de entrega. Es OBLIGATORIA.
+  fechaEntrega DateTime @map("fecha_entrega")
+
+  // Estado actual de la tarea.
+  estado EstadoTarea @default(PENDIENTE)
+
+  prioridad Prioridad @default(MEDIA)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // RELACION: cada tarea pertenece a UNA materia.
+  materiaId Int     @map("materia_id")
+  materia   Materia @relation(fields: [materiaId], references: [id], onDelete: Cascade)
+
+  @@index([materiaId])
+  @@index([fechaEntrega])
+  @@index([estado])
+  @@map("tareas")
+}

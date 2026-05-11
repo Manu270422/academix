@@ -1,0 +1,24 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependencias
+node_modules
+dist
+dist-ssr
+
+# Variables de entorno (NUNCA subir a Git)
+.env
+.env.local
+.env.production
+
+# Editor
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
