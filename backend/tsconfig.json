@@ -9,8 +9,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "ignoreDeprecations": "5.0",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": false,
     "typeRoots": ["./node_modules/@types"]
   },
   "include": ["src/**/*"],
