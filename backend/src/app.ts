@@ -17,6 +17,12 @@ import tasksRoutes from './modules/tasks/tasks.routes';
 
 const app: Application = express();
 
+// Le digo a Express que confíe en el proxy de Render (1 salto).
+// Sin esto, express-rate-limit lanza un error al ver la cabecera
+// X-Forwarded-For que Render agrega, y la petición se cae antes
+// de responder.
+app.set('trust proxy', 1);
+
 // ============================================================
 // MIDDLEWARES GLOBALES
 // ============================================================
