@@ -29,9 +29,9 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  // 10 segundos de timeout. Si el backend no responde, se rinde.
+  // 60 segundos de timeout. Si el backend no responde, se rinde.
   // Asi el usuario no se queda esperando indefinidamente.
-  timeout: 10000,
+  timeout: 60000,
 });
 
 // ============================================================
