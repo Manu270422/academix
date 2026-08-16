@@ -6,6 +6,8 @@ import { Router } from 'express';
 import * as authController from './auth.controller';
 import { validate } from '../../middlewares/validate';
 import { authenticate } from '../../middlewares/authenticate';
+// Importo los limiters para proteger las rutas públicas contra fuerza bruta
+import { loginLimiter, registerLimiter } from '../../middlewares/rateLimiter';
 import {
   registerSchema,
   loginSchema,
@@ -19,8 +21,9 @@ const router = Router();
 // ============================================================
 // RUTAS PUBLICAS
 // ============================================================
-router.post('/register', validate(registerSchema), authController.register);
-router.post('/login', validate(loginSchema), authController.login);
+// Aplico el limiter antes del validate para rechazar cuanto antes las peticiones excesivas
+router.post('/register', registerLimiter, validate(registerSchema), authController.register);
+router.post('/login',    loginLimiter,    validate(loginSchema),    authController.login);
 router.post('/refresh', validate(refreshSchema), authController.refresh);
 
 // ============================================================
