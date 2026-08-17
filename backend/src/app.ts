@@ -31,7 +31,30 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: env.corsOrigins,
+    // En vez de una lista fija, uso una función. Esto es necesario porque
+    // Vercel genera una URL nueva y distinta para cada deploy de preview
+    // (ej. academix-5vjakin5c-el-mundo-de-manu.vercel.app), y esa URL
+    // cambia en cada push. Con una lista fija tocaria actualizar
+    // CORS_ORIGINS en Render cada vez. Con esta funcion, cualquier
+    // subdominio de mi proyecto en Vercel (terminado en
+    // "-el-mundo-de-manu.vercel.app") queda permitido automaticamente,
+    // ademas de los origenes explicitos en CORS_ORIGINS (localhost y
+    // el dominio de produccion).
+    origin: (origin, callback) => {
+      // Peticiones sin origin (ej. curl, apps moviles, Postman) se permiten.
+      if (!origin) return callback(null, true);
+
+      const esOrigenPermitidoFijo = env.corsOrigins.includes(origin);
+      const esPreviewDeVercel = /^https:\/\/academix-[\w-]+-el-mundo-de-manu\.vercel\.app$/.test(
+        origin
+      );
+
+      if (esOrigenPermitidoFijo || esPreviewDeVercel) {
+        return callback(null, true);
+      }
+
+      callback(new Error(`Origen no permitido por CORS: ${origin}`));
+    },
     credentials: true,
   })
 );
