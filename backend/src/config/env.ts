@@ -20,16 +20,22 @@ function getEnv(key: string, defaultValue?: string): string {
 // Función auxiliar para variables numéricas.
 function getEnvNumber(key: string, defaultValue?: number): number {
   const value = process.env[key];
-  if (value === undefined) {
+
+  // Trato "" igual que undefined: Number('') da 0 (no NaN), y un puerto 0
+  // hace que Node escuche en un puerto aleatorio distinto en cada arranque.
+  if (value === undefined || value.trim() === '') {
     if (defaultValue === undefined) {
       throw new Error(`Falta la variable de entorno requerida: ${key}`);
     }
     return defaultValue;
   }
+
   const parsed = Number(value);
+
   if (Number.isNaN(parsed)) {
     throw new Error(`La variable de entorno ${key} debe ser un número`);
   }
+
   return parsed;
 }
 
@@ -55,6 +61,7 @@ export const env = {
   get isProduction(): boolean {
     return this.nodeEnv === 'production';
   },
+
   get isDevelopment(): boolean {
     return this.nodeEnv === 'development';
   },
