@@ -6,6 +6,7 @@ import app from './app';
 import { env } from './config/env';
 import { logger } from './utils/logger';
 import { connectDatabase, disconnectDatabase } from './config/database';
+import { iniciarCronJobs } from './utils/cron';
 
 async function startServer(): Promise<void> {
   // 1. Primero verifico que la base de datos responde.
@@ -16,6 +17,9 @@ async function startServer(): Promise<void> {
     logger.info(`Servidor escuchando en http://localhost:${env.port}`);
     logger.info(`Ambiente: ${env.nodeEnv}`);
   });
+
+  // 3. Programo los cron jobs (recordatorios de tareas).
+  iniciarCronJobs();
 
   // ============================================================
   // MANEJO DE ERRORES A NIVEL DE PROCESO

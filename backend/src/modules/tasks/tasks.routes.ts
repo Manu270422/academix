@@ -2,12 +2,13 @@
 // RUTAS DEL MÓDULO DE TAREAS
 // ============================================================
 // Convencion REST que sigo:
-//   POST   /tasks            -> crear tarea
-//   GET    /tasks            -> listar mis tareas (con filtros)
-//   GET    /tasks/:id        -> ver una tarea
-//   PATCH  /tasks/:id        -> actualizar tarea
-//   PATCH  /tasks/:id/status -> cambiar SOLO el estado (HU07)
-//   DELETE /tasks/:id        -> eliminar tarea
+//   POST   /tasks              -> crear tarea
+//   GET    /tasks              -> listar mis tareas (con filtros)
+//   GET    /tasks/:id          -> ver una tarea
+//   PATCH  /tasks/:id          -> actualizar tarea
+//   PATCH  /tasks/:id/status   -> cambiar SOLO el estado (HU07)
+//   PATCH  /tasks/:id/reminder -> editar anticipacion del recordatorio
+//   DELETE /tasks/:id          -> eliminar tarea
 //
 // TODAS las rutas están protegidas con authenticate.
 // ============================================================
@@ -23,6 +24,8 @@ import {
   taskIdParamSchema,
   listTasksQuerySchema,
 } from './tasks.dto';
+import * as remindersController from '../reminders/reminders.controller';
+import { updateReminderSchema } from '../reminders/reminders.dto';
 
 const router = Router();
 
@@ -73,6 +76,16 @@ router.patch(
   validate(taskIdParamSchema, 'params'),
   validate(updateTaskStatusSchema),
   tasksController.updateStatus
+);
+
+// ============================================================
+// PATCH /api/v1/tasks/:id/reminder - Editar anticipación del recordatorio
+// ============================================================
+router.patch(
+  '/:id/reminder',
+  validate(taskIdParamSchema, 'params'),
+  validate(updateReminderSchema),
+  remindersController.updateAnticipacion
 );
 
 // ============================================================

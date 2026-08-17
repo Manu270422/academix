@@ -14,6 +14,7 @@ import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import authRoutes from './modules/auth/auth.routes';
 import subjectsRoutes from './modules/subjects/subjects.routes';
 import tasksRoutes from './modules/tasks/tasks.routes';
+import remindersRoutes from './modules/reminders/reminders.routes';
 
 const app: Application = express();
 
@@ -103,6 +104,7 @@ app.get('/health', async (_req: Request, res: Response, next: NextFunction) => {
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/subjects', subjectsRoutes);
 app.use('/api/v1/tasks', tasksRoutes);
+app.use('/api/v1/reminders', remindersRoutes);
 
 // ============================================================
 // MANEJO DE ERRORES (siempre al final)

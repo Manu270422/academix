@@ -119,8 +119,43 @@ model Tarea {
   materiaId Int     @map("materia_id")
   materia   Materia @relation(fields: [materiaId], references: [id], onDelete: Cascade)
 
+  // RELACION: una tarea puede tener COMO MUCHO un recordatorio (1 a 0..1).
+  // Coincide con el diagrama de clases del proyecto formativo del SENA
+  // (Tarea -> Recordatorio, asociacion unidireccional).
+  recordatorio Recordatorio?
+
   @@index([materiaId])
   @@index([fechaEntrega])
   @@index([estado])
   @@map("tareas")
+}
+
+// ============================================================
+// MODELO RECORDATORIO
+// ============================================================
+// Clase de apoyo que se encarga de avisarle al estudiante cuando
+// una tarea esta por vencer. Separo esta responsabilidad de Tarea
+// tal como quedo definido en el diagrama de clases (Fase 2).
+model Recordatorio {
+  id Int @id @default(autoincrement())
+
+  // Cuantas horas antes de la fecha de entrega se debe avisar.
+  // Por defecto 24 horas (un dia antes).
+  anticipacionHoras Int @default(24) @map("anticipacion_horas")
+
+  // Controlo si ya se envio el correo, para no mandarlo dos veces.
+  enviadoEmail    Boolean   @default(false) @map("enviado_email")
+  fechaEnvioEmail DateTime? @map("fecha_envio_email")
+
+  // Controlo si el estudiante ya vio la notificacion dentro de la app.
+  leidoEnApp Boolean @default(false) @map("leido_en_app")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // RELACION: cada recordatorio pertenece a UNA tarea, y una tarea
+  // tiene a lo sumo UN recordatorio (por eso tareaId es @unique).
+  tareaId Int   @unique @map("tarea_id")
+  tarea   Tarea @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+
+  @@map("recordatorios")
 }

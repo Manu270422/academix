@@ -53,6 +53,16 @@ export const env = {
     refreshExpiresIn: getEnv('JWT_REFRESH_EXPIRES_IN', '7d'),
   },
 
+  // Configuracion para el envio de correos de recordatorio (Resend).
+  // Dejo valor por defecto vacio para que el servidor arranque igual
+  // en desarrollo local aunque no tenga la clave configurada; el
+  // servicio de correo simplemente se desactiva (ver utils/email.ts).
+  resendApiKey: getEnv('RESEND_API_KEY', ''),
+  resendFromEmail: getEnv(
+    'RESEND_FROM_EMAIL',
+    'Academix <recordatorios@mail.elmundodemanu.com>'
+  ),
+
   // Convierto la cadena "url1,url2,url3" en un array, util para CORS.
   corsOrigins: getEnv('CORS_ORIGINS', 'http://localhost:5173')
     .split(',')
