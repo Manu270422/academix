@@ -17,18 +17,26 @@ interface CorreoRecordatorio {
   fechaEntrega: Date;
 }
 
+// Resultado del envio: no solo si funciono, tambien el mensaje de error
+// si fallo, para poder guardarlo en el campo ultimoError del recordatorio
+// (asi puedo revisar despues por que fallaron los reintentos).
+export interface ResultadoEnvioCorreo {
+  exito: boolean;
+  error?: string;
+}
+
 // Envio el correo de recordatorio de una tarea proxima a vencer.
 // Si Resend no esta configurado (falta la API key), no revienta el
 // servidor: solo lo registro en el log y sigo, para que en desarrollo
 // local no sea obligatorio tener la clave.
 export async function enviarCorreoRecordatorio(
   datos: CorreoRecordatorio
-): Promise<boolean> {
+): Promise<ResultadoEnvioCorreo> {
   if (!env.resendApiKey) {
-    logger.warn(
-      'RESEND_API_KEY no configurada: se omite el envio de correo de recordatorio'
-    );
-    return false;
+    const mensaje =
+      'RESEND_API_KEY no configurada: se omite el envio de correo de recordatorio';
+    logger.warn(mensaje);
+    return { exito: false, error: mensaje };
   }
 
   const fechaFormateada = datos.fechaEntrega.toLocaleString('es-CO', {
@@ -60,14 +68,13 @@ export async function enviarCorreoRecordatorio(
 
     if (error) {
       logger.error(`Error enviando correo de recordatorio: ${error.message}`);
-      return false;
+      return { exito: false, error: error.message };
     }
 
-    return true;
+    return { exito: true };
   } catch (error) {
-    logger.error(
-      `Excepcion enviando correo de recordatorio: ${(error as Error).message}`
-    );
-    return false;
+    const mensaje = (error as Error).message;
+    logger.error(`Excepcion enviando correo de recordatorio: ${mensaje}`);
+    return { exito: false, error: mensaje };
   }
 }

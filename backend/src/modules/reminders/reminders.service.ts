@@ -4,18 +4,21 @@
 // Aqui vive la logica de negocio de los recordatorios:
 //   - Listar las notificaciones del usuario para mostrarlas en la app.
 //   - Marcar como leida una notificacion.
-//   - Dejar que el estudiante ajuste la anticipacion de una tarea.
 //   - Revisar (desde el cron) que recordatorios tocan enviar YA.
 //
+// DISENO 1:N (cada tarea tiene VARIOS recordatorios, uno por umbral
+// de UMBRALES_RECORDATORIO_HORAS). Cada fila se procesa, envia y
+// marca de forma INDEPENDIENTE de las demas.
+//
 // CADENA DE PROPIEDAD (igual que en tasks.service.ts):
-//   usuario -> materia -> tarea -> recordatorio
+//   usuario -> materia -> tarea -> recordatorios
 // ============================================================
 
 import { prisma } from '../../config/database';
 import { AppError } from '../../middlewares/errorHandler';
 import { logger } from '../../utils/logger';
 import { enviarCorreoRecordatorio } from '../../utils/email';
-import { UpdateReminderDto } from './reminders.dto';
+import { MAX_INTENTOS_ENVIO } from './reminders.constants';
 
 // ============================================================
 // LISTAR NOTIFICACIONES DEL USUARIO (PARA LA CAMPANITA)
@@ -69,91 +72,74 @@ export async function markAsRead(usuarioId: number, recordatorioId: number) {
 }
 
 // ============================================================
-// ACTUALIZAR LA ANTICIPACION DE UNA TAREA
-// ============================================================
-export async function updateAnticipacion(
-  usuarioId: number,
-  tareaId: number,
-  data: UpdateReminderDto
-) {
-  const tarea = await prisma.tarea.findFirst({
-    where: { id: tareaId, materia: { usuarioId } },
-    include: { recordatorio: true },
-  });
-
-  if (!tarea) {
-    throw new AppError('Tarea no encontrada', 404);
-  }
-
-  // Si por alguna razon la tarea no tiene recordatorio (ej. datos
-  // viejos de antes de esta funcionalidad), lo creo en el momento.
-  if (!tarea.recordatorio) {
-    return prisma.recordatorio.create({
-      data: { tareaId, anticipacionHoras: data.anticipacionHoras },
-    });
-  }
-
-  return prisma.recordatorio.update({
-    where: { tareaId },
-    data: {
-      anticipacionHoras: data.anticipacionHoras,
-      // Si el usuario cambia la anticipacion, tiene sentido que se
-      // vuelva a evaluar el envio (por si el nuevo umbral ya se cumplio).
-      enviadoEmail: false,
-      fechaEnvioEmail: null,
-    },
-  });
-}
-
-// ============================================================
 // PROCESAR RECORDATORIOS PENDIENTES (lo llama el cron)
 // ============================================================
 /**
- * Busca tareas cuyo recordatorio todavia no se ha enviado y cuya
- * fecha de aviso (fechaEntrega - anticipacionHoras) ya se cumplio.
- * Excluyo las tareas ya completadas: no tiene sentido recordar algo
- * que el estudiante ya termino.
+ * Recorre cada RECORDATORIO individualmente (no cada tarea: una tarea
+ * puede tener hasta 3 recordatorios pendientes con distinto umbral).
  *
- * Por cada una: envio el correo y marco el recordatorio como enviado
- * (independientemente de si el correo tuvo exito, para no reintentar
- * en bucle infinito si el correo falla por un problema del proveedor;
- * el estudiante igual vera la notificacion dentro de la app).
+ * Un recordatorio califica para enviarse si:
+ *   - todavia no se envio (enviadoEmail = false)
+ *   - no llego al maximo de intentos fallidos (fallidoDefinitivo = false)
+ *   - su tarea NO esta completada (regla: completada = no molestar mas)
+ *   - su tarea NO esta vencida (regla: vencida = no mandar avisos tarde)
+ *   - ya se cumplio su umbral de anticipacion (fechaEntrega - ahora <= umbral)
+ *
+ * Por cada envio exitoso: enviadoEmail=true. Esa fila nunca vuelve a
+ * entrar en esta consulta (el filtro enviadoEmail=false la excluye
+ * para siempre), asi que un envio exitoso JAMAS se reprocesa.
+ *
+ * Por cada envio fallido: sumo 1 a intentosEnvio y guardo el error.
+ * Si con este intento llego a MAX_INTENTOS_ENVIO, marco
+ * fallidoDefinitivo=true y esa fila tampoco vuelve a intentarse.
+ * Si no llego al maximo, la fila sigue con enviadoEmail=false, asi
+ * que el proximo ciclo del cron (15 min despues) la reintenta sola.
  */
 export async function procesarRecordatoriosPendientes(): Promise<void> {
   const ahora = new Date();
 
-  // Traigo TODAS las tareas con recordatorio sin enviar y sin completar,
-  // junto con sus datos, y filtro en memoria cuales ya cumplieron su
-  // umbral de anticipacion (la resta de horas no se puede hacer
-  // directamente en el WHERE de Prisma de forma sencilla).
-  const candidatos = await prisma.tarea.findMany({
+  // Candidatos: recordatorios sin enviar, sin agotar sus intentos,
+  // de tareas no completadas y no vencidas.
+  const candidatos = await prisma.recordatorio.findMany({
     where: {
-      estado: { not: 'COMPLETADA' },
-      recordatorio: { enviadoEmail: false },
+      enviadoEmail: false,
+      fallidoDefinitivo: false,
+      tarea: {
+        estado: { not: 'COMPLETADA' },
+        fechaEntrega: { gt: ahora }, // no vencida
+      },
     },
     include: {
-      recordatorio: true,
-      materia: {
+      tarea: {
         include: {
-          usuario: { select: { nombre: true, email: true } },
+          materia: {
+            include: {
+              usuario: { select: { nombre: true, email: true } },
+            },
+          },
         },
       },
     },
   });
 
-  const pendientes = candidatos.filter((tarea) => {
-    if (!tarea.recordatorio) return false;
+  // De esos candidatos, me quedo solo con los que YA cumplieron su
+  // umbral de anticipacion (ej. el de 72h no dispara hasta que falten
+  // 72 horas o menos para la entrega).
+  const pendientes = candidatos.filter((recordatorio: (typeof candidatos)[number]) => {
     const horasParaVencer =
-      (tarea.fechaEntrega.getTime() - ahora.getTime()) / (1000 * 60 * 60);
-    return horasParaVencer <= tarea.recordatorio.anticipacionHoras;
+      (recordatorio.tarea.fechaEntrega.getTime() - ahora.getTime()) /
+      (1000 * 60 * 60);
+    return horasParaVencer <= recordatorio.anticipacionHoras;
   });
 
   if (pendientes.length === 0) return;
 
   logger.info(`Procesando ${pendientes.length} recordatorio(s) pendiente(s)`);
 
-  for (const tarea of pendientes) {
-    const exito = await enviarCorreoRecordatorio({
+  for (const recordatorio of pendientes) {
+    const { tarea } = recordatorio;
+
+    const resultado = await enviarCorreoRecordatorio({
       destinatario: tarea.materia.usuario.email,
       nombreEstudiante: tarea.materia.usuario.nombre,
       tituloTarea: tarea.titulo,
@@ -161,16 +147,36 @@ export async function procesarRecordatoriosPendientes(): Promise<void> {
       fechaEntrega: tarea.fechaEntrega,
     });
 
-    // Marco como enviado en ambos casos (ver comentario de la funcion).
-    await prisma.recordatorio.update({
-      where: { tareaId: tarea.id },
-      data: { enviadoEmail: true, fechaEnvioEmail: ahora },
-    });
+    if (resultado.exito) {
+      // Envio exitoso: marco enviado y AQUI TERMINA la vida de esta
+      // fila. El filtro enviadoEmail=false de arriba la excluye para
+      // siempre de futuras corridas del cron.
+      await prisma.recordatorio.update({
+        where: { id: recordatorio.id },
+        data: { enviadoEmail: true, fechaEnvioEmail: ahora },
+      });
 
-    logger.info(
-      `Recordatorio de la tarea "${tarea.titulo}" (id: ${tarea.id}): ${
-        exito ? 'correo enviado' : 'correo NO enviado, notificacion en app disponible igual'
-      }`
-    );
+      logger.info(
+        `Recordatorio ${recordatorio.anticipacionHoras}h de la tarea "${tarea.titulo}" (id: ${tarea.id}): correo enviado`
+      );
+    } else {
+      // Envio fallido: sumo el intento y guardo el error.
+      const intentosNuevos = recordatorio.intentosEnvio + 1;
+      const seAgotaronLosIntentos = intentosNuevos >= MAX_INTENTOS_ENVIO;
+
+      await prisma.recordatorio.update({
+        where: { id: recordatorio.id },
+        data: {
+          intentosEnvio: intentosNuevos,
+          ultimoError: resultado.error,
+          fallidoDefinitivo: seAgotaronLosIntentos,
+        },
+      });
+
+      logger.error(
+        `Recordatorio ${recordatorio.anticipacionHoras}h de la tarea "${tarea.titulo}" (id: ${tarea.id}): fallo intento ${intentosNuevos}/${MAX_INTENTOS_ENVIO} - ${resultado.error}` +
+          (seAgotaronLosIntentos ? ' - marcado como fallido definitivo' : '')
+      );
+    }
   }
 }

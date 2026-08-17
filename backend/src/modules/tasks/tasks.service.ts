@@ -22,6 +22,7 @@ import {
   UpdateTaskDto,
   ListTasksQuery,
 } from './tasks.dto';
+import { UMBRALES_RECORDATORIO_HORAS } from '../reminders/reminders.constants';
 
 // ============================================================
 // HELPER: VERIFICAR QUE UNA MATERIA PERTENECE AL USUARIO
@@ -61,9 +62,11 @@ export async function create(usuarioId: number, data: CreateTaskDto) {
   // un materiaId que no le pertenece.
   await verificarMateriaDelUsuario(usuarioId, data.materiaId);
 
-  // PASO 2: Creo la tarea, y junto con ella su recordatorio por defecto
-  // (24 horas antes de la fecha de entrega). Uso una transaccion implicita
-  // con "create" anidado para que ambas filas se creen juntas o ninguna.
+  // PASO 2: Creo la tarea, y junto con ella sus recordatorios: uno
+  // por cada umbral de anticipacion (72h, 24h, 6h - ver
+  // reminders.constants.ts). Uso una transaccion implicita con
+  // "create" anidado para que la tarea y sus 3 recordatorios se
+  // creen juntos o ninguno.
   // No necesito guardar usuarioId en la tarea: la propiedad se infiere
   // a traves de la materia (tarea -> materia -> usuario).
   const tarea = await prisma.tarea.create({
@@ -75,8 +78,10 @@ export async function create(usuarioId: number, data: CreateTaskDto) {
       // Si no se envian, Prisma usa los defaults de schema.prisma.
       ...(data.estado && { estado: data.estado }),
       ...(data.prioridad && { prioridad: data.prioridad }),
-      recordatorio: {
-        create: {}, // usa el default de anticipacionHoras (24h)
+      recordatorios: {
+        create: UMBRALES_RECORDATORIO_HORAS.map((horas) => ({
+          anticipacionHoras: horas,
+        })),
       },
     },
     // Incluyo los datos de la materia en la respuesta para que el frontend
@@ -210,13 +215,17 @@ export async function update(
       ...(data.fechaEntrega !== undefined && { fechaEntrega: data.fechaEntrega }),
       ...(data.estado !== undefined && { estado: data.estado }),
       ...(data.prioridad !== undefined && { prioridad: data.prioridad }),
-      // Si la fecha de entrega cambio, "reactivo" el recordatorio para
-      // que se vuelva a evaluar y enviar con la nueva fecha (si no,
-      // como ya quedaria marcado como enviado, el estudiante nunca
-      // se enteraria del recordatorio para la nueva fecha).
+      // Si la fecha de entrega cambio, BORRO los 3 recordatorios viejos
+      // y creo 3 nuevos desde cero (deleteMany + create en la misma
+      // operacion). Es mas simple y confiable que tratar de reajustar
+      // cada uno: evita arrastrar intentosEnvio/ultimoError viejos que
+      // ya no aplican a la nueva fecha.
       ...(data.fechaEntrega !== undefined && {
-        recordatorio: {
-          update: { enviadoEmail: false, fechaEnvioEmail: null },
+        recordatorios: {
+          deleteMany: {},
+          create: UMBRALES_RECORDATORIO_HORAS.map((horas) => ({
+            anticipacionHoras: horas,
+          })),
         },
       }),
     },

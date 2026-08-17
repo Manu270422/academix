@@ -119,10 +119,11 @@ model Tarea {
   materiaId Int     @map("materia_id")
   materia   Materia @relation(fields: [materiaId], references: [id], onDelete: Cascade)
 
-  // RELACION: una tarea puede tener COMO MUCHO un recordatorio (1 a 0..1).
-  // Coincide con el diagrama de clases del proyecto formativo del SENA
-  // (Tarea -> Recordatorio, asociacion unidireccional).
-  recordatorio Recordatorio?
+  // RELACION: cada tarea puede tener VARIOS recordatorios (1 a N),
+  // uno por cada umbral de anticipacion (72h, 24h, 6h). Cambie esto
+  // de 1:0..1 a 1:N para poder avisarle al estudiante varias veces
+  // segun se acerca la fecha, en vez de un solo aviso.
+  recordatorios Recordatorio[]
 
   @@index([materiaId])
   @@index([fechaEntrega])
@@ -136,12 +137,15 @@ model Tarea {
 // Clase de apoyo que se encarga de avisarle al estudiante cuando
 // una tarea esta por vencer. Separo esta responsabilidad de Tarea
 // tal como quedo definido en el diagrama de clases (Fase 2).
+//
+// Cada tarea tiene VARIAS filas de Recordatorio (una por umbral:
+// 72h, 24h, 6h antes de vencer - ver reminders.constants.ts). Cada
+// una se envia y se marca de forma independiente.
 model Recordatorio {
   id Int @id @default(autoincrement())
 
   // Cuantas horas antes de la fecha de entrega se debe avisar.
-  // Por defecto 24 horas (un dia antes).
-  anticipacionHoras Int @default(24) @map("anticipacion_horas")
+  anticipacionHoras Int @map("anticipacion_horas")
 
   // Controlo si ya se envio el correo, para no mandarlo dos veces.
   enviadoEmail    Boolean   @default(false) @map("enviado_email")
@@ -150,12 +154,24 @@ model Recordatorio {
   // Controlo si el estudiante ya vio la notificacion dentro de la app.
   leidoEnApp Boolean @default(false) @map("leido_en_app")
 
+  // Cuento los intentos de envio fallidos. Maximo 3 (ver reminders.service.ts).
+  intentosEnvio Int     @default(0) @map("intentos_envio")
+  ultimoError   String? @db.Text @map("ultimo_error")
+
+  // Cuando llega a 3 intentos fallidos, marco esto en true para que
+  // el cron deje de intentar enviarlo en cada ciclo.
+  fallidoDefinitivo Boolean @default(false) @map("fallido_definitivo")
+
   createdAt DateTime @default(now()) @map("created_at")
 
-  // RELACION: cada recordatorio pertenece a UNA tarea, y una tarea
-  // tiene a lo sumo UN recordatorio (por eso tareaId es @unique).
-  tareaId Int   @unique @map("tarea_id")
+  // RELACION: cada recordatorio pertenece a UNA tarea.
+  tareaId Int   @map("tarea_id")
   tarea   Tarea @relation(fields: [tareaId], references: [id], onDelete: Cascade)
 
+  // Con esto evito que la misma tarea tenga dos recordatorios con el
+  // mismo umbral (ej. dos de "24 horas antes"). Ya no puede haber un
+  // recordatorio unico por tarea (por eso tareaId dejo de ser @unique
+  // solo), pero la COMBINACION tarea+umbral si debe ser unica.
+  @@unique([tareaId, anticipacionHoras])
   @@map("recordatorios")
 }

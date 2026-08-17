@@ -3,6 +3,11 @@
 // ============================================================
 // Sigo el mismo patron que en subjects y tasks: valido con Zod
 // todo lo que llega del cliente antes de tocar la base de datos.
+//
+// Nota: antes tenia aqui updateReminderSchema (para editar la
+// anticipacion de un recordatorio). Lo elimine junto con su
+// endpoint al rediseñar Recordatorio a 1:N con umbrales fijos
+// (ver reminders.constants.ts) - ver reminders.controller.ts.
 // ============================================================
 
 import { z } from 'zod';
@@ -18,20 +23,6 @@ export const reminderIdParamSchema = z.object({
 });
 
 // ============================================================
-// ESQUEMA: ACTUALIZAR ANTICIPACION DE UN RECORDATORIO
-// ============================================================
-// Le permito al estudiante elegir con cuantas horas de anticipacion
-// quiere que le avisen (por defecto son 24). Entre 1 hora y 30 dias.
-export const updateReminderSchema = z.object({
-  anticipacionHoras: z.coerce
-    .number({ invalid_type_error: 'La anticipación debe ser un número' })
-    .int('La anticipación debe ser un número entero')
-    .min(1, 'La anticipación mínima es de 1 hora')
-    .max(720, 'La anticipación máxima es de 30 días (720 horas)'),
-});
-
-// ============================================================
 // TIPOS DERIVADOS
 // ============================================================
 export type ReminderIdParam = z.infer<typeof reminderIdParamSchema>;
-export type UpdateReminderDto = z.infer<typeof updateReminderSchema>;
