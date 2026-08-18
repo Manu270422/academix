@@ -77,6 +77,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUsuario(response.usuario);
   }
 
+  // Mismo patron que loginConGoogle, pero recibiendo el accessToken
+  // que devuelve el SDK de Facebook.
+  async function loginConFacebook(accessToken: string): Promise<void> {
+    const response = await authService.loginConFacebook(accessToken);
+    tokenStorage.setTokens(response.accessToken, response.refreshToken);
+    setUsuario(response.usuario);
+  }
+
   async function register(data: RegisterData): Promise<void> {
     const response = await authService.register(data);
     tokenStorage.setTokens(response.accessToken, response.refreshToken);
@@ -103,6 +111,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isLoading,
     login,
     loginConGoogle,
+    loginConFacebook,
     register,
     logout,
     updateUserData,

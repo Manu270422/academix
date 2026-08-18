@@ -5,8 +5,10 @@
 //   - Ver su información (id, email, fecha de creacion).
 //   - Editar su nombre.
 //   - Cambiar su contraseña.
+//   - Consultar la Política de Privacidad y los Términos de Servicio.
 // ============================================================
 
+import { Link } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 import { useAuth } from '../hooks/useAuth';
 import { EditarNombreForm } from '../components/perfil/EditarNombreForm';
@@ -85,6 +87,33 @@ export function PerfilPage() {
             Cambia tu contraseña. Por seguridad, requerimos la actual.
           </p>
           <CambiarPasswordForm />
+        </div>
+      </div>
+
+      {/* Informacion legal: politica de privacidad y terminos de servicio.
+          La dejo visible aqui para que el estudiante siempre pueda
+          consultarla y este informado de cualquier novedad. */}
+      <div className="mt-6 max-w-3xl rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-1 text-lg font-semibold text-gray-900">
+          Información legal
+        </h3>
+        <p className="mb-4 text-sm text-gray-600">
+          Consulta cómo protegemos tu información y las reglas de uso
+          de Academix.
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
+          <Link
+            to="/privacidad"
+            className="text-sm font-medium text-brand-600 hover:text-brand-700 hover:underline"
+          >
+            Política de Privacidad
+          </Link>
+          <Link
+            to="/terminos"
+            className="text-sm font-medium text-brand-600 hover:text-brand-700 hover:underline"
+          >
+            Términos de Servicio
+          </Link>
         </div>
       </div>
     </AppLayout>

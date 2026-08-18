@@ -44,6 +44,21 @@ export async function loginConGoogle(
   return response.data.data;
 }
 
+/**
+ * POST /auth/facebook
+ * Login (o registro automatico) con el accessToken que devuelve
+ * el SDK de Facebook.
+ */
+export async function loginConFacebook(
+  accessToken: string
+): Promise<AuthResponse> {
+  const response = await apiClient.post<ApiResponse<AuthResponse>>(
+    '/auth/facebook',
+    { accessToken }
+  );
+  return response.data.data;
+}
+
 export async function getMe(): Promise<Usuario> {
   const response = await apiClient.get<ApiResponse<Usuario>>('/auth/me');
   return response.data.data;

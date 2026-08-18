@@ -15,6 +15,7 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Alert } from '../components/ui/Alert';
 import { BotonGoogle } from '../components/auth/BotonGoogle';
+import { BotonFacebook } from '../components/auth/BotonFacebook';
 
 interface RegisterFormValues extends Record<string, unknown> {
   nombre: string;
@@ -24,7 +25,13 @@ interface RegisterFormValues extends Record<string, unknown> {
 }
 
 export function RegisterPage() {
-  const { register, loginConGoogle, isAuthenticated, isLoading } = useAuth();
+  const {
+    register,
+    loginConGoogle,
+    loginConFacebook,
+    isAuthenticated,
+    isLoading,
+  } = useAuth();
   const navigate = useNavigate();
 
   const [errorBackend, setErrorBackend] = useState<string | null>(null);
@@ -131,6 +138,25 @@ export function RegisterPage() {
     }
   }
 
+  // Mismo patron para Facebook: "registrarse" e "iniciar sesión" son
+  // la misma acción.
+  async function manejarAccessTokenFacebook(accessToken: string): Promise<void> {
+    setErrorBackend(null);
+    try {
+      await loginConFacebook(accessToken);
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          (error.response?.data as { message?: string })?.message ??
+          'No se pudo continuar con Facebook.';
+        setErrorBackend(message);
+      } else {
+        setErrorBackend('Ocurrió un error inesperado con Facebook.');
+      }
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -162,12 +188,13 @@ export function RegisterPage() {
             </div>
           )}
 
-          {/* Boton de Google, arriba del formulario tradicional. */}
-          <div className="mb-4">
+          {/* Botones de login social, arriba del formulario tradicional. */}
+          <div className="space-y-3">
             <BotonGoogle onCredential={manejarCredentialGoogle} />
+            <BotonFacebook onAccessToken={manejarAccessTokenFacebook} />
           </div>
 
-          <div className="mb-4 flex items-center gap-3">
+          <div className="my-4 flex items-center gap-3">
             <div className="h-px flex-1 bg-gray-200" />
             <span className="text-xs text-gray-400">o con tu correo</span>
             <div className="h-px flex-1 bg-gray-200" />

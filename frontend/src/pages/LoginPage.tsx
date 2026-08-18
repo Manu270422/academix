@@ -15,6 +15,7 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Alert } from '../components/ui/Alert';
 import { BotonGoogle } from '../components/auth/BotonGoogle';
+import { BotonFacebook } from '../components/auth/BotonFacebook';
 
 interface LoginFormValues extends Record<string, unknown> {
   email: string;
@@ -22,7 +23,8 @@ interface LoginFormValues extends Record<string, unknown> {
 }
 
 export function LoginPage() {
-  const { login, loginConGoogle, isAuthenticated, isLoading } = useAuth();
+  const { login, loginConGoogle, loginConFacebook, isAuthenticated, isLoading } =
+    useAuth();
   const navigate = useNavigate();
 
   // Estado para errores generales del backend (ej: credenciales invalidas).
@@ -99,6 +101,24 @@ export function LoginPage() {
     }
   }
 
+  // Mismo patron, pero para el boton de Facebook.
+  async function manejarAccessTokenFacebook(accessToken: string): Promise<void> {
+    setErrorBackend(null);
+    try {
+      await loginConFacebook(accessToken);
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          (error.response?.data as { message?: string })?.message ??
+          'No se pudo iniciar sesión con Facebook.';
+        setErrorBackend(message);
+      } else {
+        setErrorBackend('Ocurrió un error inesperado con Facebook.');
+      }
+    }
+  }
+
   // Si la app aun esta verificando si hay sesion, muestro un loader.
   if (isLoading) {
     return (
@@ -135,12 +155,13 @@ export function LoginPage() {
             </div>
           )}
 
-          {/* Boton de Google, arriba del formulario tradicional. */}
-          <div className="mb-4">
+          {/* Botones de login social, arriba del formulario tradicional. */}
+          <div className="space-y-3">
             <BotonGoogle onCredential={manejarCredentialGoogle} />
+            <BotonFacebook onAccessToken={manejarAccessTokenFacebook} />
           </div>
 
-          <div className="mb-4 flex items-center gap-3">
+          <div className="my-4 flex items-center gap-3">
             <div className="h-px flex-1 bg-gray-200" />
             <span className="text-xs text-gray-400">o con tu correo</span>
             <div className="h-px flex-1 bg-gray-200" />

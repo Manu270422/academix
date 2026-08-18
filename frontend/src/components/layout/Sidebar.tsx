@@ -8,6 +8,7 @@
 //   - Logo/branding de Academix.
 //   - Navegación principal (Dashboard, Materias, Tareas, Perfil).
 //   - Info del usuario logueado.
+//   - Links legales (privacidad/terminos).
 //   - Botón de cerrar sesión.
 // ============================================================
 
@@ -204,7 +205,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </ul>
         </nav>
 
-        {/* PIE: info del usuario y botón cerrar sesión */}
+        {/* PIE: info del usuario, links legales y botón cerrar sesión */}
         <div className="border-t border-gray-200 p-4">
           {/* Tarjeta del usuario con avatar de iniciales */}
           <div className="mb-3 flex items-center gap-3">
@@ -243,6 +244,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </svg>
             Cerrar sesión
           </button>
+
+          {/* Links legales, discretos, debajo del boton de logout */}
+          <p className="mt-3 text-center text-xs text-gray-400">
+            <NavLink to="/privacidad" className="hover:underline">
+              Privacidad
+            </NavLink>
+            {' · '}
+            <NavLink to="/terminos" className="hover:underline">
+              Términos
+            </NavLink>
+          </p>
         </div>
       </aside>
     </>

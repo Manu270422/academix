@@ -22,6 +22,9 @@ export interface AuthContextValue {
   // Login (o registro automatico) con el "credential" que devuelve
   // el boton de Google Identity Services.
   loginConGoogle: (credential: string) => Promise<void>;
+  // Login (o registro automatico) con el accessToken que devuelve
+  // el SDK de Facebook.
+  loginConFacebook: (accessToken: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   // Actualiza el usuario del contexto sin recargar.
