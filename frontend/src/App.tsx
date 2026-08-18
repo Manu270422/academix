@@ -14,6 +14,8 @@ import { DashboardPage } from './pages/DashboardPage';
 import { MateriasPage } from './pages/MateriasPage';
 import { TareasPage } from './pages/TareasPage';
 import { PerfilPage } from './pages/PerfilPage';
+import { PoliticaPrivacidadPage } from './pages/PoliticaPrivacidadPage';
+import { TerminosServicioPage } from './pages/TerminosServicioPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +36,12 @@ function App() {
             {/* RUTAS PUBLICAS */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+
+            {/* Paginas legales, publicas (las necesito para el
+                requisito de Facebook Login de tener una politica de
+                privacidad visible). */}
+            <Route path="/privacidad" element={<PoliticaPrivacidadPage />} />
+            <Route path="/terminos" element={<TerminosServicioPage />} />
 
             {/* RUTAS PROTEGIDAS - cada una envuelta en ProtectedRoute */}
 
