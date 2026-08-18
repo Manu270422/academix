@@ -14,6 +14,7 @@ import { useForm } from '../hooks/useForm';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Alert } from '../components/ui/Alert';
+import { BotonGoogle } from '../components/auth/BotonGoogle';
 
 interface RegisterFormValues extends Record<string, unknown> {
   nombre: string;
@@ -23,7 +24,7 @@ interface RegisterFormValues extends Record<string, unknown> {
 }
 
 export function RegisterPage() {
-  const { register, isAuthenticated, isLoading } = useAuth();
+  const { register, loginConGoogle, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const [errorBackend, setErrorBackend] = useState<string | null>(null);
@@ -111,6 +112,25 @@ export function RegisterPage() {
     },
   });
 
+  // Con Google, "registrarse" e "iniciar sesión" son la misma acción:
+  // si el correo no existe, el backend crea la cuenta automaticamente.
+  async function manejarCredentialGoogle(credential: string): Promise<void> {
+    setErrorBackend(null);
+    try {
+      await loginConGoogle(credential);
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          (error.response?.data as { message?: string })?.message ??
+          'No se pudo continuar con Google.';
+        setErrorBackend(message);
+      } else {
+        setErrorBackend('Ocurrió un error inesperado con Google.');
+      }
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -141,6 +161,17 @@ export function RegisterPage() {
               <Alert variant="error">{errorBackend}</Alert>
             </div>
           )}
+
+          {/* Boton de Google, arriba del formulario tradicional. */}
+          <div className="mb-4">
+            <BotonGoogle onCredential={manejarCredentialGoogle} />
+          </div>
+
+          <div className="mb-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs text-gray-400">o con tu correo</span>
+            <div className="h-px flex-1 bg-gray-200" />
+          </div>
 
           <form onSubmit={form.handleSubmit} className="space-y-4" noValidate>
             <Input
