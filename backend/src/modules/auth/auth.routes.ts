@@ -11,6 +11,7 @@ import { loginLimiter, registerLimiter } from '../../middlewares/rateLimiter';
 import {
   registerSchema,
   loginSchema,
+  googleLoginSchema,
   refreshSchema,
   updateProfileSchema,
   changePasswordSchema,
@@ -24,6 +25,17 @@ const router = Router();
 // Aplico el limiter antes del validate para rechazar cuanto antes las peticiones excesivas
 router.post('/register', registerLimiter, validate(registerSchema), authController.register);
 router.post('/login',    loginLimiter,    validate(loginSchema),    authController.login);
+
+// POST /api/v1/auth/google - login (o registro automatico) con Google.
+// Uso el mismo loginLimiter que el login normal: mismo tipo de riesgo
+// de fuerza bruta/abuso en un endpoint publico de autenticacion.
+router.post(
+  '/google',
+  loginLimiter,
+  validate(googleLoginSchema),
+  authController.loginConGoogle
+);
+
 router.post('/refresh', validate(refreshSchema), authController.refresh);
 
 // ============================================================

@@ -7,6 +7,7 @@ import * as authService from './auth.service';
 import {
   RegisterDto,
   LoginDto,
+  GoogleLoginDto,
   RefreshDto,
   UpdateProfileDto,
   ChangePasswordDto,
@@ -42,6 +43,28 @@ export async function login(
     res.status(200).json({
       success: true,
       message: 'Inicio de sesión exitoso',
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/v1/auth/google
+ * Login (o registro automatico) con Google.
+ */
+export async function loginConGoogle(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { credential } = req.body as GoogleLoginDto;
+    const result = await authService.loginConGoogle(credential);
+    res.status(200).json({
+      success: true,
+      message: 'Inicio de sesión con Google exitoso',
       data: result,
     });
   } catch (error) {

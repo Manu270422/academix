@@ -74,6 +74,14 @@ export const env = {
   vapidPrivateKey: getEnv('VAPID_PRIVATE_KEY', ''),
   vapidContactEmail: getEnv('VAPID_CONTACT_EMAIL', 'contacto@elmundodemanu.com'),
 
+  // Configuracion para el login con Google. El Client ID NO es un
+  // secreto (viaja libremente al frontend), asi que no pasa nada si
+  // queda visible. Lo dejo con default vacio por la misma razon que
+  // las demas: que el servidor arranque igual sin configurar esto
+  // (el login con Google simplemente no va a funcionar hasta que se
+  // configure, ver auth.service.ts).
+  googleClientId: getEnv('GOOGLE_CLIENT_ID', ''),
+
   // Convierto la cadena "url1,url2,url3" en un array, util para CORS.
   corsOrigins: getEnv('CORS_ORIGINS', 'http://localhost:5173')
     .split(',')

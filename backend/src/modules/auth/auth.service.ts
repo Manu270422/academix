@@ -2,7 +2,9 @@
 // SERVICIO DE AUTENTICACIÓN
 // ============================================================
 
+import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '../../config/database';
+import { env } from '../../config/env';
 import { hashPassword, comparePassword } from '../../utils/password';
 import { generateTokenPair, verifyToken } from '../../utils/jwt';
 import { AppError } from '../../middlewares/errorHandler';
@@ -27,6 +29,10 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
+// Cliente de Google para verificar los tokens que manda el frontend.
+// Lo creo UNA sola vez aqui arriba, no en cada login (mejor rendimiento).
+const googleClient = new OAuth2Client(env.googleClientId);
+
 // ============================================================
 // REGISTRAR
 // ============================================================
@@ -45,6 +51,8 @@ export async function register(data: RegisterDto): Promise<AuthResponse> {
       nombre: data.nombre,
       email: data.email,
       passwordHash,
+      // proveedorAuth usa el default LOCAL de schema.prisma, no hace
+      // falta especificarlo aqui.
     },
     select: { id: true, nombre: true, email: true, createdAt: true },
   });
@@ -71,12 +79,110 @@ export async function login(data: LoginDto): Promise<AuthResponse> {
     throw new AppError('Credenciales inválidas', 401);
   }
 
+  // Un usuario que se registro con Google (o Microsoft/Facebook mas
+  // adelante) nunca tiene passwordHash. Si intenta entrar con
+  // contraseña, le doy un mensaje claro en vez de un error raro.
+  if (!usuario.passwordHash) {
+    throw new AppError(
+      `Esta cuenta usa inicio de sesión con ${usuario.proveedorAuth}. Usa ese método para entrar.`,
+      401
+    );
+  }
+
   const passwordValido = await comparePassword(data.password, usuario.passwordHash);
   if (!passwordValido) {
     throw new AppError('Credenciales inválidas', 401);
   }
 
   logger.info(`Inicio de sesión exitoso: ${usuario.email}`);
+
+  const tokens = generateTokenPair({
+    userId: usuario.id,
+    email: usuario.email,
+  });
+
+  return {
+    usuario: {
+      id: usuario.id,
+      nombre: usuario.nombre,
+      email: usuario.email,
+      createdAt: usuario.createdAt,
+    },
+    ...tokens,
+  };
+}
+
+// ============================================================
+// LOGIN CON GOOGLE
+// ============================================================
+/**
+ * Recibe el "credential" (un JWT firmado por Google) que genera el
+ * boton de Google en el frontend. Lo verifico contra los servidores
+ * de Google (asi me aseguro que no sea falso), y con los datos que
+ * vienen adentro (correo, nombre, ID unico de Google):
+ *   - Si ya existe un usuario LOCAL con ese correo -> error claro,
+ *     para que no le "roben" la cuenta a alguien que se registro con
+ *     contraseña normal.
+ *   - Si ya existe un usuario GOOGLE con ese correo -> lo logueo.
+ *   - Si no existe -> le creo la cuenta automaticamente, sin pedirle
+ *     que llene el formulario de registro.
+ */
+export async function loginConGoogle(credential: string): Promise<AuthResponse> {
+  if (!env.googleClientId) {
+    throw new AppError('El login con Google no está configurado', 500);
+  }
+
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: env.googleClientId,
+    });
+    payload = ticket.getPayload();
+  } catch {
+    throw new AppError('El token de Google no es válido', 401);
+  }
+
+  if (!payload || !payload.email) {
+    throw new AppError('No se pudo obtener el correo de Google', 401);
+  }
+
+  const email = payload.email.toLowerCase();
+  const nombre = payload.name ?? email.split('@')[0];
+  const googleId = payload.sub; // el ID unico que Google le da a esta persona
+
+  const usuarioExistente = await prisma.usuario.findUnique({
+    where: { email },
+  });
+
+  let usuario;
+
+  if (usuarioExistente) {
+    // Ya existe una cuenta con este correo. Verifico que no sea LOCAL
+    // (contraseña normal) para no permitir que alguien "entre" a una
+    // cuenta ajena solo porque tiene el mismo correo en Google.
+    if (usuarioExistente.proveedorAuth === 'LOCAL') {
+      throw new AppError(
+        'Ya existe una cuenta con este correo usando contraseña. Inicia sesión con tu contraseña.',
+        409
+      );
+    }
+
+    usuario = usuarioExistente;
+    logger.info(`Inicio de sesión con Google: ${usuario.email}`);
+  } else {
+    // No existe: le creo la cuenta automaticamente.
+    usuario = await prisma.usuario.create({
+      data: {
+        nombre,
+        email,
+        passwordHash: null,
+        proveedorAuth: 'GOOGLE',
+        proveedorId: googleId,
+      },
+    });
+    logger.info(`Nuevo usuario registrado con Google: ${usuario.email} (id: ${usuario.id})`);
+  }
 
   const tokens = generateTokenPair({
     userId: usuario.id,
@@ -160,6 +266,10 @@ export async function updateProfile(
  * Cambia la contraseña del usuario autenticado.
  * Por seguridad, requiere la contraseña actual.
  * Asi un atacante con sesión abierta no puede cambiarla sin conocerla.
+ *
+ * Solo aplica a usuarios LOCAL: un usuario que entro con Google nunca
+ * tuvo contraseña, asi que no tiene sentido "cambiarla" - le explico
+ * eso en vez de dejar que el codigo reviente comparando contra null.
  */
 export async function changePassword(
   userId: number,
@@ -172,6 +282,13 @@ export async function changePassword(
 
   if (!usuario) {
     throw new AppError('Usuario no encontrado', 404);
+  }
+
+  if (!usuario.passwordHash) {
+    throw new AppError(
+      `Tu cuenta usa inicio de sesión con ${usuario.proveedorAuth}, no tiene contraseña para cambiar.`,
+      400
+    );
   }
 
   // PASO 2: Verifico que la contraseña actual sea correcta.

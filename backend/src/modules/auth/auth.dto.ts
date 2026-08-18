@@ -43,6 +43,20 @@ export const loginSchema = z.object({
 });
 
 // ============================================================
+// ESQUEMA: LOGIN CON GOOGLE
+// ============================================================
+// El frontend me manda el "credential" que devuelve Google Identity
+// Services (un JWT firmado por Google). Aqui solo verifico que venga
+// como string; la validacion REAL de que el token es autentico la
+// hace google-auth-library en auth.service.ts, verificando la firma
+// contra los servidores de Google.
+export const googleLoginSchema = z.object({
+  credential: z
+    .string({ required_error: 'El credential de Google es obligatorio' })
+    .min(1, 'El credential no puede estar vacío'),
+});
+
+// ============================================================
 // ESQUEMA: REFRESH TOKEN
 // ============================================================
 export const refreshSchema = z.object({
@@ -71,6 +85,10 @@ export const updateProfileSchema = z.object({
 // Pido la contraseña ACTUAL por seguridad.
 // Si alguien deja la sesión abierta, no puede cambiar la contraseña
 // sin conocer la actual. Es el estándar de la industria.
+//
+// NOTA: este endpoint solo aplica a usuarios con proveedorAuth LOCAL.
+// Un usuario que entro por Google nunca tuvo contraseña que cambiar
+// (ver auth.service.ts, ahi valido eso antes de procesar el cambio).
 export const changePasswordSchema = z.object({
   passwordActual: z
     .string({ required_error: 'La contraseña actual es obligatoria' })
@@ -89,6 +107,7 @@ export const changePasswordSchema = z.object({
 // ============================================================
 export type RegisterDto = z.infer<typeof registerSchema>;
 export type LoginDto = z.infer<typeof loginSchema>;
+export type GoogleLoginDto = z.infer<typeof googleLoginSchema>;
 export type RefreshDto = z.infer<typeof refreshSchema>;
 export type UpdateProfileDto = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordDto = z.infer<typeof changePasswordSchema>;

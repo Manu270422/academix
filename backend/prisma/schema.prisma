@@ -36,6 +36,16 @@ enum Prioridad {
   ALTA
 }
 
+// De donde viene la identidad del usuario. LOCAL = se registro con
+// email y contrasena normal. Los demas son login social: el usuario
+// nunca puso contrasena, Google/Microsoft/Facebook confirman quien es.
+enum ProveedorAuth {
+  LOCAL
+  GOOGLE
+  MICROSOFT
+  FACEBOOK
+}
+
 // ============================================================
 // MODELO USUARIO
 // ============================================================
@@ -50,8 +60,19 @@ model Usuario {
   // Nombre completo del estudiante. Maximo 100 caracteres.
   nombre String @db.VarChar(100)
 
-  // IMPORTANTE: aqui guardo el HASH de la contrasena, NUNCA la contrasena en claro.
-  passwordHash String @map("password_hash") @db.VarChar(255)
+  // IMPORTANTE: aqui guardo el HASH de la contrasena, NUNCA la contrasena
+  // en claro. Ahora es OPCIONAL: un usuario que entra por Google/Microsoft/
+  // Facebook nunca crea contrasena, asi que este campo queda null para el.
+  passwordHash String? @map("password_hash") @db.VarChar(255)
+
+  // De donde viene esta cuenta. Por defecto LOCAL (registro tradicional).
+  proveedorAuth ProveedorAuth @default(LOCAL) @map("proveedor_auth")
+
+  // El ID unico que el proveedor social le asigna a esta persona
+  // (ej. el "sub" que manda Google). Lo uso para reconocer al usuario
+  // en logins futuros, sin depender solo del email. Null para cuentas
+  // LOCAL.
+  proveedorId String? @map("proveedor_id") @db.VarChar(255)
 
   // Timestamps automaticos para auditoria y trazabilidad.
   createdAt DateTime @default(now()) @map("created_at")
@@ -67,6 +88,12 @@ model Usuario {
   // (ej. el celular y el computador).
   pushSubscriptions PushSubscription[]
 
+  // Con esto evito que dos cuentas sociales del mismo proveedor
+  // (ej. dos logins de Google) terminen apuntando al mismo proveedorId
+  // por error. Cuando proveedorId es null (cuentas LOCAL), MySQL no
+  // aplica la restriccion unica a esas filas, asi que no afecta el
+  // registro tradicional.
+  @@unique([proveedorAuth, proveedorId])
   @@map("usuarios")
 }
 
