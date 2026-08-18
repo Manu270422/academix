@@ -242,8 +242,18 @@ export function RegisterPage() {
           </p>
         </div>
 
+        {/* Footer con el creador y los links legales */}
         <p className="mt-6 text-center text-xs text-gray-500">
           Academix - Carlos Manuel Turizo Hernández - SENA ADSO
+        </p>
+        <p className="mt-2 text-center text-xs text-gray-400">
+          <Link to="/privacidad" className="hover:underline">
+            Política de Privacidad
+          </Link>
+          {' · '}
+          <Link to="/terminos" className="hover:underline">
+            Términos de Servicio
+          </Link>
         </p>
       </div>
     </div>
