@@ -33,32 +33,34 @@ export function DashboardPage() {
   // useMemo evita recalcular en cada render: solo recalcula cuando
   // las tareas cambian. Para listas pequeñas no importa, pero es
   // buena practica con calculos derivados.
-// 1. Definimos el tiempo actual fuera del useMemo para que sea estable
-const ahora = new Date().getTime();
+  //
+  // IMPORTANTE: 'ahora' vive DENTRO del memo para que no sea una
+  // dependencia externa. Si lo pusiera afuera, cambiaria en cada
+  // render (new Date() siempre es un valor nuevo) y el memo nunca
+  // serviria de nada porque sus deps cambiarían constantemente.
+  const stats = useMemo(() => {
+    const ahora = new Date().getTime();
+    const total = tareas.length;
+    const pendientes = tareas.filter((t) => t.estado === 'PENDIENTE').length;
+    const enProgreso = tareas.filter((t) => t.estado === 'EN_PROGRESO').length;
+    const completadas = tareas.filter((t) => t.estado === 'COMPLETADA').length;
 
-const stats = useMemo(() => {
-  const total = tareas.length;
-  const pendientes = tareas.filter((t) => t.estado === 'PENDIENTE').length;
-  const enProgreso = tareas.filter((t) => t.estado === 'EN_PROGRESO').length;
-  const completadas = tareas.filter((t) => t.estado === 'COMPLETADA').length;
+    // Tareas vencidas: fecha pasada Y no completadas.
+    const vencidas = tareas.filter(
+      (t) =>
+        t.estado !== 'COMPLETADA' &&
+        new Date(t.fechaEntrega).getTime() < ahora
+    ).length;
 
-  // Tareas vencidas: fecha pasada Y no completadas.
-  // Usamos 'ahora' que definimos arriba.
-  const vencidas = tareas.filter(
-    (t) =>
-      t.estado !== 'COMPLETADA' &&
-      new Date(t.fechaEntrega).getTime() < ahora
-  ).length;
-
-  return {
-    totalMaterias: materias.length,
-    total,
-    pendientes,
-    enProgreso,
-    completadas,
-    vencidas,
-  };
-}, [materias, tareas, ahora]); // Solo se recalcula si cambian las listas
+    return {
+      totalMaterias: materias.length,
+      total,
+      pendientes,
+      enProgreso,
+      completadas,
+      vencidas,
+    };
+  }, [materias, tareas]); // Solo se recalcula si cambian las listas
 
   // Saludo según la hora del dia.
   const hora = new Date().getHours();

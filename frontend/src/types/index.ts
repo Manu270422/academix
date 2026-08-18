@@ -82,6 +82,34 @@ export interface Tarea {
 }
 
 // ============================================================
+// RECORDATORIO
+// ============================================================
+// Cada uno representa UN umbral de aviso (72h, 24h o 6h antes de
+// vencer) ya enviado para una tarea. El backend solo me devuelve
+// los que ya se enviaron (enviadoEmail=true) - son las notificaciones
+// que se muestran en la campanita.
+export interface Recordatorio {
+  id: number;
+  anticipacionHoras: number;
+  enviadoEmail: boolean;
+  fechaEnvioEmail: string | null;
+  leidoEnApp: boolean;
+  createdAt: string;
+  // El backend siempre incluye estos datos de la tarea y su materia,
+  // para poder mostrar "Tarea X - Materia Y" sin otra petición.
+  tarea: {
+    id: number;
+    titulo: string;
+    fechaEntrega: string;
+    materia: {
+      id: number;
+      nombre: string;
+      color: string | null;
+    };
+  };
+}
+
+// ============================================================
 // RESPUESTAS GENÉRICAS DEL BACKEND
 // ============================================================
 // Mi backend SIEMPRE responde con esta estructura.
@@ -92,6 +120,9 @@ export interface ApiResponse<T> {
   data: T;
   meta?: {
     total?: number;
+    // Uso esto en /reminders para saber cuantas notificaciones
+    // sin leer mostrar en el contador de la campanita.
+    noLeidos?: number;
   };
 }
 

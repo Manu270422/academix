@@ -7,7 +7,10 @@
 // Contiene:
 //   - Botón de menu hamburguesa para abrir la sidebar.
 //   - Logo de Academix.
+//   - Campanita de notificaciones.
 // ============================================================
+
+import { NotificacionesCampanita } from './NotificacionesCampanita';
 
 interface MobileHeaderProps {
   onOpenSidebar: () => void;
@@ -42,7 +45,10 @@ export function MobileHeader({ onOpenSidebar }: MobileHeaderProps) {
       </button>
 
       {/* Logo */}
-      <h1 className="text-lg font-bold text-brand-700">Academix</h1>
+      <h1 className="flex-1 text-lg font-bold text-brand-700">Academix</h1>
+
+      {/* Campanita de notificaciones */}
+      <NotificacionesCampanita />
     </header>
   );
 }

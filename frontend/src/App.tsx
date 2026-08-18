@@ -8,6 +8,8 @@ import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+// Agrego la HomePage que estaba faltando en el router
+import { HomePage } from './pages/HomePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { MateriasPage } from './pages/MateriasPage';
 import { TareasPage } from './pages/TareasPage';
@@ -34,6 +36,10 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
 
             {/* RUTAS PROTEGIDAS - cada una envuelta en ProtectedRoute */}
+
+            {/* Ruta /home que faltaba registrar */}
+            <Route path="/home" element={<HomePage />} />
+
             <Route
               path="/dashboard"
               element={

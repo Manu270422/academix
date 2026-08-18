@@ -16,6 +16,7 @@
 import { useState, type ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileHeader } from './MobileHeader';
+import { NotificacionesCampanita } from './NotificacionesCampanita';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -41,6 +42,12 @@ export function AppLayout({ children }: AppLayoutProps) {
           min-w-0 evita que el contenido empuje la sidebar (truco de flexbox). */}
       <div className="flex min-w-0 flex-1 flex-col">
         <MobileHeader onOpenSidebar={() => setIsSidebarOpen(true)} />
+
+        {/* Header de escritorio: solo la campanita, alineada a la derecha.
+            En movil la campanita va dentro de MobileHeader (otro archivo). */}
+        <div className="hidden items-center justify-end border-b border-gray-200 bg-white px-6 py-3 lg:flex">
+          <NotificacionesCampanita />
+        </div>
 
         {/* Aqui se inyecta el contenido de cada pagina.
             El padding lo manejo aqui para que sea consistente en toda la app. */}
