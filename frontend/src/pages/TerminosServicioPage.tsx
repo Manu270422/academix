@@ -79,15 +79,7 @@ export function TerminosServicioPage() {
               6. Contacto
             </h2>
             <p className="mt-2">
-              Si tienes preguntas sobre estos términos, puedes
-              escribirnos a{' '}
-              
-                href="mailto:contacto@elmundodemanu.com"
-                className="text-brand-600 hover:underline"
-              >
-                contacto@elmundodemanu.com
-              </a>
-              .
+              Si tienes preguntas sobre estos términos, escríbenos a{' '}<a href="mailto:contacto@elmundodemanu.com" className="text-brand-600 hover:underline">contacto@elmundodemanu.com</a>.
             </p>
           </section>
         </div>

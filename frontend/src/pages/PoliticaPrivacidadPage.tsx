@@ -65,7 +65,7 @@ export function PoliticaPrivacidadPage() {
             <p className="mt-2">
               Si inicias sesión con Google, Microsoft o Facebook,
               recibimos de ellos tu nombre, correo electrónico y un
-              identificador único de tu cuenta — nunca tu contraseña de
+              identificador único de tu cuenta, nunca tu contraseña de
               esas plataformas.
             </p>
           </section>
@@ -89,15 +89,7 @@ export function PoliticaPrivacidadPage() {
               Puedes editar tu nombre en cualquier momento desde tu
               perfil. Si quieres que eliminemos tu cuenta y todos los
               datos asociados (materias, tareas, recordatorios), puedes
-              escribirnos a{' '}
-              
-                href="mailto:contacto@elmundodemanu.com"
-                className="text-brand-600 hover:underline"
-              >
-                contacto@elmundodemanu.com
-              </a>{' '}
-              solicitando la eliminación, y procesaremos tu solicitud
-              en un plazo razonable.
+              escribirnos solicitando la eliminación a{' '}<a href="mailto:contacto@elmundodemanu.com" className="text-brand-600 hover:underline">contacto@elmundodemanu.com</a>, y procesaremos tu solicitud en un plazo razonable.
             </p>
           </section>
 
@@ -106,15 +98,7 @@ export function PoliticaPrivacidadPage() {
               6. Contacto
             </h2>
             <p className="mt-2">
-              Si tienes preguntas sobre esta política, puedes
-              escribirnos a{' '}
-              
-                href="mailto:contacto@elmundodemanu.com"
-                className="text-brand-600 hover:underline"
-              >
-                contacto@elmundodemanu.com
-              </a>
-              .
+              Si tienes preguntas sobre esta política, escríbenos a{' '}<a href="mailto:contacto@elmundodemanu.com" className="text-brand-600 hover:underline">contacto@elmundodemanu.com</a>.
             </p>
           </section>
         </div>
