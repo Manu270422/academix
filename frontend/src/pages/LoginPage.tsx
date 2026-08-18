@@ -14,6 +14,7 @@ import { useForm } from '../hooks/useForm';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Alert } from '../components/ui/Alert';
+import { BotonGoogle } from '../components/auth/BotonGoogle';
 
 interface LoginFormValues extends Record<string, unknown> {
   email: string;
@@ -21,7 +22,7 @@ interface LoginFormValues extends Record<string, unknown> {
 }
 
 export function LoginPage() {
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, loginConGoogle, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
 
   // Estado para errores generales del backend (ej: credenciales invalidas).
@@ -79,6 +80,25 @@ export function LoginPage() {
     },
   });
 
+  // Uso el mismo manejo de errores que el login normal, pero para
+  // cuando el estudiante entra con el boton de Google.
+  async function manejarCredentialGoogle(credential: string): Promise<void> {
+    setErrorBackend(null);
+    try {
+      await loginConGoogle(credential);
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message =
+          (error.response?.data as { message?: string })?.message ??
+          'No se pudo iniciar sesión con Google.';
+        setErrorBackend(message);
+      } else {
+        setErrorBackend('Ocurrió un error inesperado con Google.');
+      }
+    }
+  }
+
   // Si la app aun esta verificando si hay sesion, muestro un loader.
   if (isLoading) {
     return (
@@ -114,6 +134,17 @@ export function LoginPage() {
               <Alert variant="error">{errorBackend}</Alert>
             </div>
           )}
+
+          {/* Boton de Google, arriba del formulario tradicional. */}
+          <div className="mb-4">
+            <BotonGoogle onCredential={manejarCredentialGoogle} />
+          </div>
+
+          <div className="mb-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs text-gray-400">o con tu correo</span>
+            <div className="h-px flex-1 bg-gray-200" />
+          </div>
 
           <form onSubmit={form.handleSubmit} className="space-y-4" noValidate>
             <Input

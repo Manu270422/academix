@@ -29,6 +29,21 @@ export async function login(
   return response.data.data;
 }
 
+/**
+ * POST /auth/google
+ * Login (o registro automatico) con el "credential" que devuelve
+ * el boton de Google Identity Services.
+ */
+export async function loginConGoogle(
+  credential: string
+): Promise<AuthResponse> {
+  const response = await apiClient.post<ApiResponse<AuthResponse>>(
+    '/auth/google',
+    { credential }
+  );
+  return response.data.data;
+}
+
 export async function getMe(): Promise<Usuario> {
   const response = await apiClient.get<ApiResponse<Usuario>>('/auth/me');
   return response.data.data;

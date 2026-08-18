@@ -6,7 +6,7 @@
 //
 // Responsabilidades:
 //   - Mantener los datos del usuario autenticado.
-//   - Permitir login/logout/register/updateUserData.
+//   - Permitir login/loginConGoogle/logout/register/updateUserData.
 //   - Verificar la sesión al cargar la app (preguntando a /auth/me).
 //
 // El hook useAuth vive en hooks/useAuth.ts.
@@ -69,6 +69,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUsuario(response.usuario);
   }
 
+  // Mismo patron que login normal, pero recibiendo el "credential"
+  // (token firmado por Google) en vez de email/password.
+  async function loginConGoogle(credential: string): Promise<void> {
+    const response = await authService.loginConGoogle(credential);
+    tokenStorage.setTokens(response.accessToken, response.refreshToken);
+    setUsuario(response.usuario);
+  }
+
   async function register(data: RegisterData): Promise<void> {
     const response = await authService.register(data);
     tokenStorage.setTokens(response.accessToken, response.refreshToken);
@@ -94,6 +102,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated: usuario !== null,
     isLoading,
     login,
+    loginConGoogle,
     register,
     logout,
     updateUserData,

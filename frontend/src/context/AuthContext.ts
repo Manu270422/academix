@@ -19,6 +19,9 @@ export interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
+  // Login (o registro automatico) con el "credential" que devuelve
+  // el boton de Google Identity Services.
+  loginConGoogle: (credential: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   // Actualiza el usuario del contexto sin recargar.
