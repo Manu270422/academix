@@ -1,0 +1,54 @@
+// ============================================================
+// UTILIDADES PARA NOTIFICACIONES PUSH (LADO DEL NAVEGADOR)
+// ============================================================
+// Aqui vive toda la logica de bajo nivel para activar las
+// notificaciones push: registrar el service worker, pedir permiso,
+// y suscribirse al servicio de push del navegador.
+// ============================================================
+
+// Verifico si el navegador soporta push (Safari viejo, por ejemplo,
+// no lo soporta completamente).
+export function soportaPush(): boolean {
+  return 'serviceWorker' in navigator && 'PushManager' in window;
+}
+
+// Registro mi service worker (public/sw.js). Si ya estaba
+// registrado, el navegador simplemente devuelve el mismo.
+export async function registrarServiceWorker(): Promise<ServiceWorkerRegistration> {
+  return navigator.serviceWorker.register('/sw.js');
+}
+
+// El navegador exige que la VAPID public key este en formato
+// Uint8Array, pero mi backend me la da como string base64. Esta
+// funcion hace esa conversion (es el codigo estandar que recomienda
+// la documentacion de Web Push).
+function convertirVapidKey(claveBase64: string): Uint8Array {
+  const relleno = '='.repeat((4 - (claveBase64.length % 4)) % 4);
+  const base64 = (claveBase64 + relleno).replace(/-/g, '+').replace(/_/g, '/');
+  const bruto = window.atob(base64);
+  const salida = new Uint8Array(bruto.length);
+  for (let i = 0; i < bruto.length; i++) {
+    salida[i] = bruto.charCodeAt(i);
+  }
+  return salida;
+}
+
+// Reviso si el navegador YA tiene una suscripcion push activa
+// (por si el estudiante ya la activo antes, en una sesion pasada).
+export async function obtenerSuscripcionActual(
+  registro: ServiceWorkerRegistration
+): Promise<PushSubscription | null> {
+  return registro.pushManager.getSubscription();
+}
+
+// Crea una suscripcion push nueva. Esto es lo que dispara el popup
+// del navegador pidiendole permiso al estudiante.
+export async function crearSuscripcionPush(
+  registro: ServiceWorkerRegistration,
+  vapidPublicKey: string
+): Promise<PushSubscription> {
+  return registro.pushManager.subscribe({
+    userVisibleOnly: true, // exigido por el estandar: toda push debe mostrar algo visible
+    applicationServerKey: convertirVapidKey(vapidPublicKey),
+  });
+}

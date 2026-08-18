@@ -5,15 +5,22 @@
 // Muestra un contador con las notificaciones sin leer, y al hacer
 // clic despliega un panel con la lista de recordatorios enviados
 // (tareas que estan por vencer segun los umbrales de 72h/24h/6h).
+//
+// Tambien reproduce un sonido corto cuando llega una notificacion
+// NUEVA (el contador de no leidos sube) mientras el estudiante
+// tiene la app abierta, y ofrece activar/desactivar las
+// notificaciones push del sistema operativo.
 // ============================================================
 
 import { useEffect, useRef, useState } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, BellOff, BellRing } from 'lucide-react';
 import {
   useMarcarRecordatorioLeido,
   useRecordatorios,
 } from '../../hooks/useReminders';
+import { usePush } from '../../hooks/usePush';
 import { EmptyState } from '../ui/EmptyState';
+import { reproducirSonidoNotificacion } from '../../utils/sonido';
 import type { Recordatorio } from '../../types';
 
 // Formateo simple de fecha para mostrar cuando se envio el aviso.
@@ -43,9 +50,30 @@ export function NotificacionesCampanita() {
 
   const { data, isLoading } = useRecordatorios();
   const marcarLeido = useMarcarRecordatorioLeido();
+  const push = usePush();
 
   const recordatorios = data?.recordatorios ?? [];
   const noLeidos = data?.noLeidos ?? 0;
+
+  // Guardo el numero de no-leidos anterior para poder comparar y
+  // detectar cuando SUBE (llego una notificacion nueva). Empiezo en
+  // null para saber que todavia no cargo la primera vez (y asi NO
+  // sonar apenas el estudiante abre la app si ya tenia pendientes).
+  const noLeidosAnteriorRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (data === undefined) return;
+
+    const anterior = noLeidosAnteriorRef.current;
+
+    // Solo sueno si ya habia un valor previo (no en la primera carga)
+    // Y ese valor subio (llego una notificacion nueva de verdad).
+    if (anterior !== null && noLeidos > anterior) {
+      reproducirSonidoNotificacion();
+    }
+
+    noLeidosAnteriorRef.current = noLeidos;
+  }, [data, noLeidos]);
 
   // Cierro el panel si el usuario hace clic afuera de el.
   useEffect(() => {
@@ -87,11 +115,40 @@ export function NotificacionesCampanita() {
       {/* Panel desplegable */}
       {abierto && (
         <div className="absolute right-0 z-50 mt-2 w-80 rounded-lg border border-gray-200 bg-white shadow-lg">
-          <div className="border-b border-gray-100 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
             <h3 className="text-sm font-semibold text-gray-900">
               Notificaciones
             </h3>
+
+            {/* Boton de activar/desactivar push, solo si el navegador
+                lo soporta. */}
+            {push.soportado && (
+              <button
+                type="button"
+                onClick={push.activo ? push.desactivar : push.activar}
+                disabled={push.cargando}
+                className="flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+                title={
+                  push.activo
+                    ? 'Desactivar notificaciones del sistema'
+                    : 'Activar notificaciones del sistema'
+                }
+              >
+                {push.activo ? (
+                  <BellRing className="h-3.5 w-3.5 text-blue-600" />
+                ) : (
+                  <BellOff className="h-3.5 w-3.5" />
+                )}
+                {push.activo ? 'Activas' : 'Activar'}
+              </button>
+            )}
           </div>
+
+          {push.error && (
+            <p className="border-b border-gray-100 px-4 py-2 text-xs text-red-600">
+              {push.error}
+            </p>
+          )}
 
           <div className="max-h-96 overflow-y-auto">
             {isLoading && (
