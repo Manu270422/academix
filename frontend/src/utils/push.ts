@@ -22,11 +22,20 @@ export async function registrarServiceWorker(): Promise<ServiceWorkerRegistratio
 // Uint8Array, pero mi backend me la da como string base64. Esta
 // funcion hace esa conversion (es el codigo estandar que recomienda
 // la documentacion de Web Push).
-function convertirVapidKey(claveBase64: string): Uint8Array {
+//
+// NOTA: construyo el Uint8Array a partir de un ArrayBuffer explicito
+// (en vez de new Uint8Array(largo) directo) porque en versiones
+// nuevas de TypeScript el tipo inferido queda como
+// Uint8Array<ArrayBufferLike> (que incluye SharedArrayBuffer) y
+// pushManager.subscribe() exige especificamente un ArrayBuffer
+// normal. Asi evito el choque de tipos.
+function convertirVapidKey(claveBase64: string): BufferSource {
   const relleno = '='.repeat((4 - (claveBase64.length % 4)) % 4);
   const base64 = (claveBase64 + relleno).replace(/-/g, '+').replace(/_/g, '/');
   const bruto = window.atob(base64);
-  const salida = new Uint8Array(bruto.length);
+
+  const buffer = new ArrayBuffer(bruto.length);
+  const salida = new Uint8Array(buffer);
   for (let i = 0; i < bruto.length; i++) {
     salida[i] = bruto.charCodeAt(i);
   }
