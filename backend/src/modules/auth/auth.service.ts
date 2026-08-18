@@ -3,6 +3,7 @@
 // ============================================================
 
 import { OAuth2Client } from 'google-auth-library';
+import { verificarTokenFacebook } from '../../utils/facebookAuth';
 import { prisma } from '../../config/database';
 import { env } from '../../config/env';
 import { hashPassword, comparePassword } from '../../utils/password';
@@ -189,6 +190,67 @@ export async function loginConGoogle(credential: string): Promise<AuthResponse> 
     email: usuario.email,
   });
 
+  return {
+    usuario: {
+      id: usuario.id,
+      nombre: usuario.nombre,
+      email: usuario.email,
+      createdAt: usuario.createdAt,
+    },
+    ...tokens,
+  };
+}
+
+// ============================================================
+// LOGIN CON FACEBOOK
+// ============================================================
+/**
+ * Mismo patron que loginConGoogle: verifico el token, y segun el
+ * caso (correo nuevo / ya FACEBOOK / ya LOCAL) actuo distinto.
+ *
+ * Diferencia importante: Facebook puede NO devolver el correo del
+ * usuario (si no lo tiene verificado en su cuenta). Como el correo
+ * es mi identificador unico, si no viene, no puedo continuar - le
+ * pido que intente con otro metodo.
+ */
+export async function loginConFacebook(accessToken: string): Promise<AuthResponse> {
+  const datosFacebook = await verificarTokenFacebook(accessToken);
+  if (!datosFacebook.email) {
+    throw new AppError(
+      'No pudimos obtener tu correo de Facebook. Verifica que tu cuenta de Facebook tenga un correo asociado, o usa otro método de inicio de sesión.',
+      400
+    );
+  }
+  const email = datosFacebook.email.toLowerCase();
+  const usuarioExistente = await prisma.usuario.findUnique({
+    where: { email },
+  });
+  let usuario;
+  if (usuarioExistente) {
+    if (usuarioExistente.proveedorAuth === 'LOCAL') {
+      throw new AppError(
+        'Ya existe una cuenta con este correo usando contraseña. Inicia sesión con tu contraseña.',
+        409
+      );
+    }
+    usuario = usuarioExistente;
+    logger.info(`Inicio de sesión con Facebook: ${usuario.email}`);
+  } else {
+    usuario = await prisma.usuario.create({
+      data: {
+        nombre: datosFacebook.nombre,
+        email,
+        passwordHash: null,
+        proveedorAuth: 'FACEBOOK',
+        proveedorId: datosFacebook.id,
+      },
+    });
+    logger.info(`Nuevo usuario registrado con Facebook: ${usuario.email} (id: ${usuario.id})`);
+  }
+  const tokens = generateTokenPair({
+    userId: usuario.id,
+    email: usuario.email,
+  });
   return {
     usuario: {
       id: usuario.id,

@@ -12,6 +12,7 @@ import {
   registerSchema,
   loginSchema,
   googleLoginSchema,
+  facebookLoginSchema,
   refreshSchema,
   updateProfileSchema,
   changePasswordSchema,
@@ -34,6 +35,14 @@ router.post(
   loginLimiter,
   validate(googleLoginSchema),
   authController.loginConGoogle
+);
+
+// POST /api/v1/auth/facebook - login (o registro automatico) con Facebook.
+router.post(
+  '/facebook',
+  loginLimiter,
+  validate(facebookLoginSchema),
+  authController.loginConFacebook
 );
 
 router.post('/refresh', validate(refreshSchema), authController.refresh);

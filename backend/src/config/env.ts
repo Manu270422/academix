@@ -54,33 +54,27 @@ export const env = {
   },
 
   // Configuracion para el envio de correos de recordatorio (Resend).
-  // Dejo valor por defecto vacio para que el servidor arranque igual
-  // en desarrollo local aunque no tenga la clave configurada; el
-  // servicio de correo simplemente se desactiva (ver utils/email.ts).
   resendApiKey: getEnv('RESEND_API_KEY', ''),
   resendFromEmail: getEnv(
     'RESEND_FROM_EMAIL',
     'Academix <recordatorios@mail.elmundodemanu.com>'
   ),
 
-  // Configuracion para las notificaciones push (Web Push estandar,
-  // sin Firebase ni servicios de pago). Las llaves VAPID se generan
-  // UNA sola vez con "npx web-push generate-vapid-keys" y se guardan
-  // como secretos. Dejo valores por defecto vacios por la misma razon
-  // que en Resend: que el servidor arranque igual en desarrollo local
-  // sin tenerlas configuradas (el envio de push simplemente se omite,
-  // ver utils/push.ts).
+  // Configuracion para las notificaciones push (Web Push estandar).
   vapidPublicKey: getEnv('VAPID_PUBLIC_KEY', ''),
   vapidPrivateKey: getEnv('VAPID_PRIVATE_KEY', ''),
   vapidContactEmail: getEnv('VAPID_CONTACT_EMAIL', 'contacto@elmundodemanu.com'),
 
   // Configuracion para el login con Google. El Client ID NO es un
-  // secreto (viaja libremente al frontend), asi que no pasa nada si
-  // queda visible. Lo dejo con default vacio por la misma razon que
-  // las demas: que el servidor arranque igual sin configurar esto
-  // (el login con Google simplemente no va a funcionar hasta que se
-  // configure, ver auth.service.ts).
+  // secreto (viaja libremente al frontend).
   googleClientId: getEnv('GOOGLE_CLIENT_ID', ''),
+
+  // Configuracion para el login con Facebook. A diferencia de Google,
+  // aqui SI necesito el App Secret en el backend (nunca en el
+  // frontend) para poder verificar el access token del usuario
+  // contra la Graph API de Meta (ver utils/facebookAuth.ts).
+  facebookAppId: getEnv('FACEBOOK_APP_ID', ''),
+  facebookAppSecret: getEnv('FACEBOOK_APP_SECRET', ''),
 
   // Convierto la cadena "url1,url2,url3" en un array, util para CORS.
   corsOrigins: getEnv('CORS_ORIGINS', 'http://localhost:5173')

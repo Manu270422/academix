@@ -57,6 +57,18 @@ export const googleLoginSchema = z.object({
 });
 
 // ============================================================
+// ESQUEMA: LOGIN CON FACEBOOK
+// ============================================================
+// El frontend me manda el "accessToken" que devuelve el SDK de
+// Facebook tras el login. La verificacion REAL contra la Graph API
+// de Meta la hago en auth.service.ts (ver utils/facebookAuth.ts).
+export const facebookLoginSchema = z.object({
+  accessToken: z
+    .string({ required_error: 'El accessToken de Facebook es obligatorio' })
+    .min(1, 'El accessToken no puede estar vacío'),
+});
+
+// ============================================================
 // ESQUEMA: REFRESH TOKEN
 // ============================================================
 export const refreshSchema = z.object({
@@ -108,6 +120,7 @@ export const changePasswordSchema = z.object({
 export type RegisterDto = z.infer<typeof registerSchema>;
 export type LoginDto = z.infer<typeof loginSchema>;
 export type GoogleLoginDto = z.infer<typeof googleLoginSchema>;
+export type FacebookLoginDto = z.infer<typeof facebookLoginSchema>;
 export type RefreshDto = z.infer<typeof refreshSchema>;
 export type UpdateProfileDto = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordDto = z.infer<typeof changePasswordSchema>;

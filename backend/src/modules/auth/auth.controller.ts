@@ -8,6 +8,7 @@ import {
   RegisterDto,
   LoginDto,
   GoogleLoginDto,
+  FacebookLoginDto,
   RefreshDto,
   UpdateProfileDto,
   ChangePasswordDto,
@@ -65,6 +66,28 @@ export async function loginConGoogle(
     res.status(200).json({
       success: true,
       message: 'Inicio de sesión con Google exitoso',
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/v1/auth/facebook
+ * Login (o registro automatico) con Facebook.
+ */
+export async function loginConFacebook(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { accessToken } = req.body as FacebookLoginDto;
+    const result = await authService.loginConFacebook(accessToken);
+    res.status(200).json({
+      success: true,
+      message: 'Inicio de sesión con Facebook exitoso',
       data: result,
     });
   } catch (error) {
