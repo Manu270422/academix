@@ -18,6 +18,7 @@ import { prisma } from '../../config/database';
 import { AppError } from '../../middlewares/errorHandler';
 import { logger } from '../../utils/logger';
 import { enviarCorreoRecordatorio } from '../../utils/email';
+import { enviarPushAUsuario } from '../../utils/push';
 import { MAX_INTENTOS_ENVIO } from './reminders.constants';
 
 // ============================================================
@@ -94,6 +95,13 @@ export async function markAsRead(usuarioId: number, recordatorioId: number) {
  * fallidoDefinitivo=true y esa fila tampoco vuelve a intentarse.
  * Si no llego al maximo, la fila sigue con enviadoEmail=false, asi
  * que el proximo ciclo del cron (15 min despues) la reintenta sola.
+ *
+ * El PUSH (notificacion del sistema operativo) lo mando en paralelo
+ * al correo, pero es "best effort": si falla, solo lo registro en el
+ * log y sigo. No lo ato a la logica de reintentos del correo, porque
+ * son dos canales independientes y el correo es el que quiero
+ * garantizar que llegue si o si (por eso el diseño de 3 intentos es
+ * solo para el correo).
  */
 export async function procesarRecordatoriosPendientes(): Promise<void> {
   const ahora = new Date();
@@ -114,7 +122,7 @@ export async function procesarRecordatoriosPendientes(): Promise<void> {
         include: {
           materia: {
             include: {
-              usuario: { select: { nombre: true, email: true } },
+              usuario: { select: { id: true, nombre: true, email: true } },
             },
           },
         },
@@ -159,6 +167,20 @@ export async function procesarRecordatoriosPendientes(): Promise<void> {
       logger.info(
         `Recordatorio ${recordatorio.anticipacionHoras}h de la tarea "${tarea.titulo}" (id: ${tarea.id}): correo enviado`
       );
+
+      // Mando tambien la notificacion push, en paralelo, sin bloquear
+      // ni afectar el resultado del correo si esta falla.
+      try {
+        await enviarPushAUsuario(tarea.materia.usuario.id, {
+          titulo: 'Academix - Tarea por vencer',
+          cuerpo: `"${tarea.titulo}" de ${tarea.materia.nombre} vence pronto`,
+          url: '/tareas',
+        });
+      } catch (error) {
+        logger.error(
+          `Error enviando push del recordatorio ${recordatorio.id}: ${(error as Error).message}`
+        );
+      }
     } else {
       // Envio fallido: sumo el intento y guardo el error.
       const intentosNuevos = recordatorio.intentosEnvio + 1;

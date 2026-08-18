@@ -62,6 +62,11 @@ model Usuario {
   // automaticamente se borran todas sus materias (y por cascada sus tareas).
   materias Materia[]
 
+  // RELACION: un usuario puede tener VARIAS suscripciones push (1 a N),
+  // una por cada navegador/dispositivo donde activo las notificaciones
+  // (ej. el celular y el computador).
+  pushSubscriptions PushSubscription[]
+
   @@map("usuarios")
 }
 
@@ -174,4 +179,38 @@ model Recordatorio {
   // solo), pero la COMBINACION tarea+umbral si debe ser unica.
   @@unique([tareaId, anticipacionHoras])
   @@map("recordatorios")
+}
+
+// ============================================================
+// MODELO PUSHSUBSCRIPTION
+// ============================================================
+// Guardo aqui la "suscripcion" que el navegador del estudiante
+// genera cuando acepta recibir notificaciones push (las que
+// aparecen en la barra del sistema / pantalla de bloqueo). Con
+// estos 3 datos (endpoint + las 2 llaves) le puedo mandar avisos
+// a ese navegador especifico en cualquier momento, aunque el
+// estudiante tenga Academix cerrado.
+model PushSubscription {
+  id Int @id @default(autoincrement())
+
+  // La URL unica que identifica a este navegador/dispositivo ante
+  // el servicio de push (Chrome, Firefox, etc). Es unica: si el
+  // mismo navegador se vuelve a suscribir, actualizo en vez de
+  // duplicar (ver push.service.ts, uso upsert).
+  endpoint String @unique @db.VarChar(500)
+
+  // Llaves de cifrado que exige el estandar Web Push para que el
+  // contenido de la notificacion viaje encriptado.
+  p256dh String @db.VarChar(255)
+  auth   String @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // RELACION: cada suscripcion pertenece a UN usuario. Un usuario
+  // puede tener varias (un dispositivo por cada uno).
+  usuarioId Int     @map("usuario_id")
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("push_subscriptions")
 }

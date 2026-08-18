@@ -63,6 +63,17 @@ export const env = {
     'Academix <recordatorios@mail.elmundodemanu.com>'
   ),
 
+  // Configuracion para las notificaciones push (Web Push estandar,
+  // sin Firebase ni servicios de pago). Las llaves VAPID se generan
+  // UNA sola vez con "npx web-push generate-vapid-keys" y se guardan
+  // como secretos. Dejo valores por defecto vacios por la misma razon
+  // que en Resend: que el servidor arranque igual en desarrollo local
+  // sin tenerlas configuradas (el envio de push simplemente se omite,
+  // ver utils/push.ts).
+  vapidPublicKey: getEnv('VAPID_PUBLIC_KEY', ''),
+  vapidPrivateKey: getEnv('VAPID_PRIVATE_KEY', ''),
+  vapidContactEmail: getEnv('VAPID_CONTACT_EMAIL', 'contacto@elmundodemanu.com'),
+
   // Convierto la cadena "url1,url2,url3" en un array, util para CORS.
   corsOrigins: getEnv('CORS_ORIGINS', 'http://localhost:5173')
     .split(',')

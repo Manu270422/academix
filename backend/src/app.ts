@@ -15,6 +15,7 @@ import authRoutes from './modules/auth/auth.routes';
 import subjectsRoutes from './modules/subjects/subjects.routes';
 import tasksRoutes from './modules/tasks/tasks.routes';
 import remindersRoutes from './modules/reminders/reminders.routes';
+import pushRoutes from './modules/push/push.routes';
 
 const app: Application = express();
 
@@ -105,6 +106,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/subjects', subjectsRoutes);
 app.use('/api/v1/tasks', tasksRoutes);
 app.use('/api/v1/reminders', remindersRoutes);
+app.use('/api/v1/push', pushRoutes);
 
 // ============================================================
 // MANEJO DE ERRORES (siempre al final)
