@@ -5,14 +5,18 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 // Agrego la HomePage que estaba faltando en el router
 import { HomePage } from './pages/HomePage';
 import { DashboardPage } from './pages/DashboardPage';
+import { CalendarioPage } from './pages/CalendarioPage';
 import { MateriasPage } from './pages/MateriasPage';
+import { MateriaDetallePage } from './pages/MateriaDetallePage';
 import { TareasPage } from './pages/TareasPage';
+import { EstadisticasPage } from './pages/EstadisticasPage';
 import { PerfilPage } from './pages/PerfilPage';
 import { PoliticaPrivacidadPage } from './pages/PoliticaPrivacidadPage';
 import { TerminosServicioPage } from './pages/TerminosServicioPage';
@@ -29,9 +33,10 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrowserRouter>
           <Routes>
             {/* RUTAS PUBLICAS */}
             <Route path="/login" element={<LoginPage />} />
@@ -57,6 +62,14 @@ function App() {
               }
             />
             <Route
+              path="/calendario"
+              element={
+                <ProtectedRoute>
+                  <CalendarioPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/materias"
               element={
                 <ProtectedRoute>
@@ -65,10 +78,26 @@ function App() {
               }
             />
             <Route
+              path="/materias/:id"
+              element={
+                <ProtectedRoute>
+                  <MateriaDetallePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/tareas"
               element={
                 <ProtectedRoute>
                   <TareasPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/estadisticas"
+              element={
+                <ProtectedRoute>
+                  <EstadisticasPage />
                 </ProtectedRoute>
               }
             />
@@ -86,10 +115,11 @@ function App() {
 
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
