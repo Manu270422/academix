@@ -46,6 +46,23 @@ export function useMateriasList() {
 }
 
 // ============================================================
+// HOOK: OBTENER UNA MATERIA
+// ============================================================
+/**
+ * Devuelve una materia por su id. Lo uso en la página de detalle
+ * (/materias/:id). La queryKey incluye el id para cachear cada
+ * materia por separado.
+ */
+export function useMateria(id: number) {
+  return useQuery({
+    queryKey: [...MATERIAS_KEY, id],
+    queryFn: () => subjectsService.getMateria(id),
+    // Solo pido si el id es un número válido (> 0).
+    enabled: Number.isFinite(id) && id > 0,
+  });
+}
+
+// ============================================================
 // HOOK: CREAR MATERIA
 // ============================================================
 /**

@@ -9,6 +9,7 @@
 //   - Responsive: en grid se ajusta automáticamente.
 // ============================================================
 
+import { Link } from 'react-router-dom';
 import type { Materia } from '../../types';
 
 interface MateriaCardProps {
@@ -25,7 +26,7 @@ export function MateriaCard({ materia, onEdit, onDelete }: MateriaCardProps) {
   const totalTareas = materia._count?.tareas ?? 0;
 
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
+    <div className="group relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm transition hover:shadow-md">
       {/* Barra lateral de color a la izquierda.
           Uso style inline porque el color es dinámico (viene de la BD).
           Tailwind no puede generar clases dinámicas como bg-[#xxxxxx]. */}
@@ -39,14 +40,23 @@ export function MateriaCard({ materia, onEdit, onDelete }: MateriaCardProps) {
         {/* Cabecera con nombre y dot de color */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-lg font-semibold text-gray-900">
-              {materia.nombre}
+            {/* El título es un enlace que cubre toda la tarjeta
+                (after:absolute inset-0). Así todo el card lleva al
+                detalle, pero los botones de editar/borrar (que tienen
+                z-10) siguen funcionando encima. */}
+            <h3 className="truncate text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <Link
+                to={`/materias/${materia.id}`}
+                className="after:absolute after:inset-0 hover:text-brand-600"
+              >
+                {materia.nombre}
+              </Link>
             </h3>
 
             {/* Descripción (truncada a 2 líneas si es larga).
                 line-clamp-2 corta el texto bonito con "..." al final. */}
             {materia.descripcion && (
-              <p className="mt-1 line-clamp-2 text-sm text-gray-600">
+              <p className="mt-1 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
                 {materia.descripcion}
               </p>
             )}
@@ -54,9 +64,9 @@ export function MateriaCard({ materia, onEdit, onDelete }: MateriaCardProps) {
         </div>
 
         {/* Pie con conteo de tareas y acciones */}
-        <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3">
+        <div className="mt-4 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-3">
           {/* Conteo de tareas */}
-          <div className="flex items-center gap-1.5 text-sm text-gray-600">
+          <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -76,12 +86,13 @@ export function MateriaCard({ materia, onEdit, onDelete }: MateriaCardProps) {
             </span>
           </div>
 
-          {/* Botones de acción. */}
-          <div className="flex gap-1">
+          {/* Botones de acción. z-10 para quedar por encima del enlace
+              que cubre la tarjeta. */}
+          <div className="relative z-10 flex gap-1">
             <button
               type="button"
               onClick={() => onEdit(materia)}
-              className="rounded-md p-2 text-gray-500 transition hover:bg-gray-100 hover:text-brand-600"
+              className="rounded-md p-2 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-brand-600"
               aria-label={`Editar ${materia.nombre}`}
               title="Editar"
             >
@@ -104,7 +115,7 @@ export function MateriaCard({ materia, onEdit, onDelete }: MateriaCardProps) {
             <button
               type="button"
               onClick={() => onDelete(materia)}
-              className="rounded-md p-2 text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+              className="rounded-md p-2 text-gray-500 dark:text-gray-400 transition hover:bg-red-50 hover:text-red-600"
               aria-label={`Eliminar ${materia.nombre}`}
               title="Eliminar"
             >

@@ -96,6 +96,10 @@ export async function findOne(usuarioId: number, materiaId: number) {
       _count: {
         select: { tareas: true },
       },
+      // Traigo los apuntes de la materia, el más reciente primero.
+      notas: {
+        orderBy: { createdAt: 'desc' },
+      },
     },
   });
 
