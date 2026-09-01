@@ -59,6 +59,8 @@
 - 🔍 **Filtros avanzados** — por estado, prioridad, materia y rango de fechas
 - ☑️ **Subtareas y notas** — checklist por tarea y apuntes libres por materia
 - 🔁 **Repetir tarea** — crea varias entregas de una vez (semanal / quincenal / mensual)
+- 🗑️ **Papelera** — borrado suave con restauración y purga automática a los 30 días
+- 📦 **Portabilidad** — exportar todos mis datos (JSON) y eliminar cuenta
 - 🛡️ **Validación robusta** — esquemas Zod en todos los endpoints
 - 🗃️ **Base de datos relacional** — MySQL 8 con Prisma ORM y migraciones versionadas
 - 🚀 **TypeScript end-to-end** — tipado fuerte y seguridad en tiempo de desarrollo
@@ -273,7 +275,9 @@ http://localhost:3000/api/v1
 | `GET` | `/subjects` | Listar materias del usuario | ✓ |
 | `GET` | `/subjects/:id` | Ver detalle de una materia (incluye sus notas) | ✓ |
 | `PATCH` | `/subjects/:id` | Actualizar materia | ✓ |
-| `DELETE` | `/subjects/:id` | Eliminar materia | ✓ |
+| `DELETE` | `/subjects/:id` | Mover materia (y sus tareas) a la papelera | ✓ |
+| `POST` | `/subjects/:id/restore` | Restaurar materia desde la papelera | ✓ |
+| `DELETE` | `/subjects/:id/permanent` | Borrar materia definitivamente | ✓ |
 
 ### 📝 Notas de una materia
 
@@ -293,7 +297,20 @@ http://localhost:3000/api/v1
 | `GET` | `/tasks/:id` | Ver detalle de una tarea | ✓ |
 | `PATCH` | `/tasks/:id` | Actualizar tarea | ✓ |
 | `PATCH` | `/tasks/:id/status` | Cambiar estado de tarea | ✓ |
-| `DELETE` | `/tasks/:id` | Eliminar tarea | ✓ |
+| `DELETE` | `/tasks/:id` | Mover tarea a la papelera | ✓ |
+| `POST` | `/tasks/:id/restore` | Restaurar tarea desde la papelera | ✓ |
+| `DELETE` | `/tasks/:id/permanent` | Borrar tarea definitivamente | ✓ |
+
+### 🗑️ Papelera
+
+| Método | Endpoint | Descripción | Auth requerida |
+|--------|----------|-------------|:--------------:|
+| `GET` | `/trash` | Ver materias y tareas en la papelera | ✓ |
+| `DELETE` | `/trash` | Vaciar la papelera (borrado definitivo) | ✓ |
+
+> El borrado normal es **suave**: los elementos van a la papelera con
+> `deleted_at` y se ocultan de todas las consultas. Un cron los borra de
+> verdad a los 30 días.
 
 ### ☑️ Subtareas (checklist de una tarea)
 

@@ -111,6 +111,8 @@ No es un ejercicio de clase aislado — es la herramienta que uso yo mismo para 
 | ⌨️ | **Buscador global** | `Ctrl/Cmd + K` para saltar a cualquier materia, tarea o sección. |
 | 🌗 | **Modo oscuro** | Tema claro / oscuro / según el sistema, recordado entre visitas. |
 | 📲 | **PWA instalable** | "Añadir a la pantalla de inicio" y consulta offline de lo ya cargado. |
+| 🗑️ | **Papelera** | Lo eliminado se puede restaurar; se borra solo a los 30 días. |
+| 📦 | **Mis datos** | Descarga toda tu información en JSON o elimina tu cuenta. |
 | 👤 | **Perfil de usuario** | Edición de datos personales y cambio seguro de contraseña. |
 | 📱 | **Diseño responsive** | Adaptado a móvil, tablet y escritorio. |
 
@@ -174,9 +176,9 @@ Entidades principales gestionadas con Prisma sobre MySQL:
 | Entidad | Responsabilidad |
 |---|---|
 | `Usuario` | Cuenta, credenciales y datos de perfil |
-| `Materia` | Asignaturas del usuario, con color personalizado |
+| `Materia` | Asignaturas del usuario, con color y *borrado suave* (papelera) |
 | `Nota` | Apuntes libres asociados a una materia |
-| `Tarea` | Actividades asociadas a una materia: prioridad, estado, fecha límite |
+| `Tarea` | Actividades de una materia: prioridad, estado, fecha límite, *borrado suave* |
 | `Subtarea` | Pasos del checklist de una tarea (hecho / no hecho) |
 | `Recordatorio` | Programación de avisos previos al vencimiento de una tarea |
 | `PushSubscription` | Suscripciones del navegador para notificaciones push |
@@ -270,9 +272,11 @@ Academix corre en producción en [academix.elmundodemanu.com](https://academix.e
 - ✅ PWA instalable con consulta offline
 - ✅ Suite de tests (Vitest) + CI en GitHub Actions
 
-**v1.2 — En curso**
+**v1.2 — Cuenta y datos** ✅
 - ✅ Exportar todos mis datos (JSON) y eliminar cuenta
-- [ ] Papelera / borrado suave (recuperar materias y tareas eliminadas)
+- ✅ Papelera / borrado suave (restaurar materias y tareas, purga a los 30 días)
+
+**v1.3 — Próximamente**
 - [ ] Estadísticas avanzadas con gráficos
 
 ## 📄 Licencia

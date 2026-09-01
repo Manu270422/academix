@@ -558,9 +558,11 @@ Este archivo es **obligatorio** para que React Router funcione correctamente al 
 - [x] PWA instalable con consulta offline
 - [x] Suite de tests (Vitest) + CI
 
-### v1.2 — En curso
+### v1.2 — Cuenta y datos ✅
 - [x] Exportar todos mis datos (JSON) y eliminar cuenta
-- [ ] Papelera / borrado suave (recuperar lo eliminado)
+- [x] Papelera / borrado suave (restaurar materias y tareas)
+
+### v1.3 — Próximamente
 - [ ] Estadísticas avanzadas con gráficos
 
 ---
