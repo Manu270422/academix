@@ -12,10 +12,16 @@ export function soportaPush(): boolean {
   return 'serviceWorker' in navigator && 'PushManager' in window;
 }
 
-// Registro mi service worker (public/sw.js). Si ya estaba
-// registrado, el navegador simplemente devuelve el mismo.
+// Registro el service worker. Ahora Academix tiene UN solo service
+// worker: el que genera vite-plugin-pwa en /sw.js, que ademas hace
+// importScripts('/push-sw.js') para manejar las notificaciones push
+// (ver vite.config.ts). Al ser PWA, el plugin ya lo registra al
+// cargar la app; aqui solo espero a que este listo y devuelvo su
+// registro para poder suscribirme.
 export async function registrarServiceWorker(): Promise<ServiceWorkerRegistration> {
-  return navigator.serviceWorker.register('/sw.js');
+  const existente = await navigator.serviceWorker.getRegistration('/');
+  if (existente) return existente;
+  return navigator.serviceWorker.register('/sw.js', { type: 'classic' });
 }
 
 // El navegador exige que la VAPID public key este en formato
