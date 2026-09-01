@@ -4,6 +4,7 @@
 
 import cron from 'node-cron';
 import { procesarRecordatoriosPendientes } from '../modules/reminders/reminders.service';
+import { purgarAntiguos } from '../modules/trash/trash.service';
 import { logger } from './logger';
 
 export function iniciarCronJobs(): void {
@@ -20,5 +21,19 @@ export function iniciarCronJobs(): void {
     }
   });
 
-  logger.info('Cron de recordatorios programado (cada 15 minutos)');
+  // Todos los dias a las 03:00: borro definitivamente lo que lleve
+  // mas de 30 dias en la papelera.
+  cron.schedule('0 3 * * *', async () => {
+    try {
+      await purgarAntiguos(30);
+    } catch (error) {
+      logger.error(
+        `Error purgando la papelera: ${(error as Error).message}`
+      );
+    }
+  });
+
+  logger.info(
+    'Cron programado: recordatorios (cada 15 min) + purga de papelera (diaria)'
+  );
 }

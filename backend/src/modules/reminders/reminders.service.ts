@@ -33,7 +33,8 @@ export async function findAll(usuarioId: number) {
   const recordatorios = await prisma.recordatorio.findMany({
     where: {
       enviadoEmail: true,
-      tarea: { materia: { usuarioId } },
+      // No muestro avisos de tareas que estan en la Papelera.
+      tarea: { deletedAt: null, materia: { usuarioId, deletedAt: null } },
     },
     include: {
       tarea: {
@@ -115,6 +116,8 @@ export async function procesarRecordatoriosPendientes(): Promise<void> {
       tarea: {
         estado: { not: 'COMPLETADA' },
         fechaEntrega: { gt: ahora }, // no vencida
+        deletedAt: null, // no en la Papelera
+        materia: { deletedAt: null },
       },
     },
     include: {

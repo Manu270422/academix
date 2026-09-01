@@ -17,6 +17,7 @@ import { MateriasPage } from './pages/MateriasPage';
 import { MateriaDetallePage } from './pages/MateriaDetallePage';
 import { TareasPage } from './pages/TareasPage';
 import { EstadisticasPage } from './pages/EstadisticasPage';
+import { PapeleraPage } from './pages/PapeleraPage';
 import { PerfilPage } from './pages/PerfilPage';
 import { PoliticaPrivacidadPage } from './pages/PoliticaPrivacidadPage';
 import { TerminosServicioPage } from './pages/TerminosServicioPage';
@@ -98,6 +99,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <EstadisticasPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/papelera"
+              element={
+                <ProtectedRoute>
+                  <PapeleraPage />
                 </ProtectedRoute>
               }
             />

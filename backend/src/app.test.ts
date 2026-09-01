@@ -82,6 +82,16 @@ describe('protección con JWT', () => {
       .send({ confirmacion: 'ELIMINAR' });
     expect(res.status).toBe(401);
   });
+
+  it('GET /api/v1/trash sin token -> 401', async () => {
+    const res = await request(app).get('/api/v1/trash');
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/v1/subjects/1/restore sin token -> 401', async () => {
+    const res = await request(app).post('/api/v1/subjects/1/restore');
+    expect(res.status).toBe(401);
+  });
 });
 
 describe('validación de body', () => {

@@ -19,7 +19,7 @@ async function verificarMateriaDelUsuario(
   materiaId: number
 ): Promise<void> {
   const materia = await prisma.materia.findFirst({
-    where: { id: materiaId, usuarioId },
+    where: { id: materiaId, usuarioId, deletedAt: null },
     select: { id: true },
   });
   if (!materia) {
@@ -33,7 +33,11 @@ async function buscarNotaDelUsuario(
   notaId: number
 ) {
   const nota = await prisma.nota.findFirst({
-    where: { id: notaId, materiaId, materia: { usuarioId } },
+    where: {
+      id: notaId,
+      materiaId,
+      materia: { usuarioId, deletedAt: null },
+    },
   });
   if (!nota) {
     throw new AppError('Nota no encontrada', 404);

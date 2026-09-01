@@ -297,10 +297,10 @@ export function MateriaDetallePage() {
         title="Eliminar tarea"
         message={
           tareaEliminando
-            ? `¿Estás seguro de eliminar "${tareaEliminando.titulo}"? Esta acción no se puede deshacer.`
+            ? `"${tareaEliminando.titulo}" se moverá a la papelera. Podrás restaurarla desde ahí durante 30 días.`
             : ''
         }
-        confirmText="Sí, eliminar"
+        confirmText="Mover a la papelera"
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

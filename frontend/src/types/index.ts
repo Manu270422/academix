@@ -56,6 +56,9 @@ export interface Materia {
   };
   // El backend incluye las notas (apuntes) en GET /subjects/:id.
   notas?: Nota[];
+  // Fecha en que se movió a la papelera (null = activa). Solo llega
+  // en la respuesta de /trash.
+  deletedAt?: string | null;
 }
 
 // ============================================================
@@ -94,6 +97,8 @@ export interface Tarea {
   };
   // El backend siempre incluye el checklist (puede venir vacio).
   subtareas?: Subtarea[];
+  // Fecha en que se movió a la papelera (solo en la respuesta de /trash).
+  deletedAt?: string | null;
 }
 
 // ============================================================

@@ -147,3 +147,46 @@ export async function remove(
     next(error);
   }
 }
+/**
+ * POST /api/v1/subjects/:id/restore
+ * Saca una materia (y sus tareas) de la papelera.
+ */
+export async function restore(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const usuario = getAuthUser(req);
+    const { id } = req.params as unknown as SubjectIdParam;
+    await subjectsService.restore(usuario.id, id);
+    res.status(200).json({
+      success: true,
+      message: 'Materia restaurada correctamente',
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * DELETE /api/v1/subjects/:id/permanent
+ * Borra una materia de la papelera para siempre.
+ */
+export async function removePermanent(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const usuario = getAuthUser(req);
+    const { id } = req.params as unknown as SubjectIdParam;
+    await subjectsService.removePermanent(usuario.id, id);
+    res.status(200).json({
+      success: true,
+      message: 'Materia eliminada definitivamente',
+    });
+  } catch (error) {
+    next(error);
+  }
+}

@@ -40,7 +40,7 @@ async function verificarMateriaDelUsuario(
   materiaId: number
 ): Promise<void> {
   const materia = await prisma.materia.findFirst({
-    where: { id: materiaId, usuarioId },
+    where: { id: materiaId, usuarioId, deletedAt: null },
     select: { id: true }, // solo necesito saber si existe, no traigo nada más
   });
 
@@ -146,9 +146,11 @@ export async function create(usuarioId: number, data: CreateTaskDto) {
  */
 export async function findAll(usuarioId: number, filters: ListTasksQuery) {
   // Construyo el filtro WHERE dinamicamente segun los parametros enviados.
-  // Empiezo con el filtro base obligatorio: tareas cuya materia es del usuario.
+  // Base obligatoria: tareas activas (no en Papelera) cuya materia es
+  // del usuario y tampoco esta en la Papelera.
   const where: Prisma.TareaWhereInput = {
-    materia: { usuarioId },
+    deletedAt: null,
+    materia: { usuarioId, deletedAt: null },
   };
 
   // Anado filtros opcionales solo si el cliente los envio.
@@ -211,9 +213,10 @@ export async function findOne(usuarioId: number, tareaId: number) {
   const tarea = await prisma.tarea.findFirst({
     where: {
       id: tareaId,
-      // Filtro por la relacion: la materia de esta tarea debe ser del usuario.
-      // Esta linea es la que aplica el aislamiento por usuario.
-      materia: { usuarioId },
+      deletedAt: null,
+      // Filtro por la relacion: la materia de esta tarea debe ser del
+      // usuario y no estar en la Papelera.
+      materia: { usuarioId, deletedAt: null },
     },
     include: {
       materia: {
@@ -315,17 +318,72 @@ export async function updateStatus(
 }
 
 // ============================================================
-// ELIMINAR TAREA
+// ELIMINAR TAREA (BORRADO SUAVE -> PAPELERA)
 // ============================================================
 /**
- * Elimina una tarea del usuario autenticado.
+ * "Elimina" una tarea: le pongo deletedAt y va a la Papelera.
  */
 export async function remove(usuarioId: number, tareaId: number) {
   await findOne(usuarioId, tareaId);
 
-  await prisma.tarea.delete({
+  await prisma.tarea.update({
     where: { id: tareaId },
+    data: { deletedAt: new Date() },
   });
 
-  logger.info(`Tarea ${tareaId} eliminada por usuario ${usuarioId}`);
+  logger.info(`Tarea ${tareaId} movida a la papelera por usuario ${usuarioId}`);
+}
+
+// ============================================================
+// HELPER: BUSCAR UNA TAREA EN LA PAPELERA
+// ============================================================
+// La tarea debe estar en la Papelera pero su materia NO (si la
+// materia tambien esta borrada, la tarea se restaura junto con ella).
+async function findTareaEnPapelera(usuarioId: number, tareaId: number) {
+  const tarea = await prisma.tarea.findFirst({
+    where: {
+      id: tareaId,
+      deletedAt: { not: null },
+      materia: { usuarioId },
+    },
+    include: { materia: { select: { deletedAt: true } } },
+  });
+  if (!tarea) {
+    throw new AppError('Tarea no encontrada en la papelera', 404);
+  }
+  return tarea;
+}
+
+// ============================================================
+// RESTAURAR TAREA
+// ============================================================
+export async function restore(usuarioId: number, tareaId: number) {
+  const tarea = await findTareaEnPapelera(usuarioId, tareaId);
+
+  if (tarea.materia.deletedAt) {
+    throw new AppError(
+      'La materia de esta tarea también está en la papelera. Restaura primero la materia.',
+      400
+    );
+  }
+
+  await prisma.tarea.update({
+    where: { id: tareaId },
+    data: { deletedAt: null },
+  });
+
+  logger.info(`Tarea ${tareaId} restaurada por usuario ${usuarioId}`);
+}
+
+// ============================================================
+// ELIMINAR TAREA DEFINITIVAMENTE
+// ============================================================
+export async function removePermanent(usuarioId: number, tareaId: number) {
+  await findTareaEnPapelera(usuarioId, tareaId);
+
+  await prisma.tarea.delete({ where: { id: tareaId } });
+
+  logger.info(
+    `Tarea ${tareaId} eliminada DEFINITIVAMENTE por usuario ${usuarioId}`
+  );
 }

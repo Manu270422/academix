@@ -18,6 +18,7 @@ import tasksRoutes from './modules/tasks/tasks.routes';
 import subtasksRoutes from './modules/subtasks/subtasks.routes';
 import remindersRoutes from './modules/reminders/reminders.routes';
 import pushRoutes from './modules/push/push.routes';
+import trashRoutes from './modules/trash/trash.routes';
 
 const app: Application = express();
 
@@ -112,6 +113,7 @@ app.use('/api/v1/tasks', tasksRoutes);
 app.use('/api/v1/tasks/:tareaId/subtasks', subtasksRoutes);
 app.use('/api/v1/reminders', remindersRoutes);
 app.use('/api/v1/push', pushRoutes);
+app.use('/api/v1/trash', trashRoutes);
 
 // ============================================================
 // MANEJO DE ERRORES (siempre al final)

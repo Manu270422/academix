@@ -218,10 +218,10 @@ export function MateriasPage() {
         title="Eliminar materia"
         message={
           materiaEliminando
-            ? `¿Estas seguro de eliminar "${materiaEliminando.nombre}"? Esta accion eliminara tambien todas las tareas asociadas y no se puede deshacer.`
+            ? `"${materiaEliminando.nombre}" y sus tareas se moverán a la papelera. Podrás restaurarlas desde ahí durante 30 días.`
             : ''
         }
-        confirmText="Si, eliminar"
+        confirmText="Mover a la papelera"
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

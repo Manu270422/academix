@@ -72,4 +72,20 @@ router.delete(
   subjectsController.remove
 );
 
+// ============================================================
+// PAPELERA
+// ============================================================
+// POST   /api/v1/subjects/:id/restore    -> sacar de la papelera
+// DELETE /api/v1/subjects/:id/permanent  -> borrar para siempre
+router.post(
+  '/:id/restore',
+  validate(subjectIdParamSchema, 'params'),
+  subjectsController.restore
+);
+router.delete(
+  '/:id/permanent',
+  validate(subjectIdParamSchema, 'params'),
+  subjectsController.removePermanent
+);
+
 export default router;

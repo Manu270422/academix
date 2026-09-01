@@ -114,6 +114,13 @@ model Materia {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // BORRADO SUAVE: cuando el estudiante "elimina" una materia, no la
+  // borro de verdad: le pongo aqui la fecha y la escondo de todas las
+  // consultas normales. Va a la Papelera, desde donde se puede
+  // restaurar o borrar definitivamente. Un cron la borra de verdad a
+  // los 30 dias.
+  deletedAt DateTime? @map("deleted_at")
+
   // RELACION: cada materia pertenece a UN usuario.
   usuarioId Int     @map("usuario_id")
   usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
@@ -125,6 +132,7 @@ model Materia {
   notas Nota[]
 
   @@index([usuarioId])
+  @@index([deletedAt])
   @@map("materias")
 }
 
@@ -175,6 +183,11 @@ model Tarea {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // BORRADO SUAVE: igual que en Materia. Al "eliminar" una tarea va a
+  // la Papelera en vez de borrarse. Tambien se marca aqui cuando se
+  // elimina su materia (para que la tarea siga a su materia).
+  deletedAt DateTime? @map("deleted_at")
+
   // RELACION: cada tarea pertenece a UNA materia.
   materiaId Int     @map("materia_id")
   materia   Materia @relation(fields: [materiaId], references: [id], onDelete: Cascade)
@@ -193,6 +206,7 @@ model Tarea {
   @@index([materiaId])
   @@index([fechaEntrega])
   @@index([estado])
+  @@index([deletedAt])
   @@map("tareas")
 }
 

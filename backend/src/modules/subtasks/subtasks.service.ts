@@ -24,7 +24,11 @@ async function verificarTareaDelUsuario(
   tareaId: number
 ): Promise<void> {
   const tarea = await prisma.tarea.findFirst({
-    where: { id: tareaId, materia: { usuarioId } },
+    where: {
+      id: tareaId,
+      deletedAt: null,
+      materia: { usuarioId, deletedAt: null },
+    },
     select: { id: true },
   });
 
@@ -47,7 +51,7 @@ async function buscarSubtareaDelUsuario(
     where: {
       id: subtareaId,
       tareaId,
-      tarea: { materia: { usuarioId } },
+      tarea: { deletedAt: null, materia: { usuarioId, deletedAt: null } },
     },
   });
 

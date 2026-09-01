@@ -61,7 +61,8 @@ export async function create(usuarioId: number, data: CreateSubjectDto) {
  */
 export async function findAll(usuarioId: number) {
   return prisma.materia.findMany({
-    where: { usuarioId },
+    // deletedAt: null -> escondo las que estan en la Papelera.
+    where: { usuarioId, deletedAt: null },
     orderBy: { createdAt: 'desc' }, // las más recientes primero
     include: {
       // Cuento las tareas asociadas a cada materia, sin traer las tareas completas.
@@ -91,6 +92,7 @@ export async function findOne(usuarioId: number, materiaId: number) {
     where: {
       id: materiaId,
       usuarioId, // Esta línea es la que aplica el AISLAMIENTO POR USUARIO.
+      deletedAt: null, // una materia en la Papelera se trata como inexistente
     },
     include: {
       _count: {
@@ -145,23 +147,86 @@ export async function update(
 }
 
 // ============================================================
-// ELIMINAR MATERIA
+// ELIMINAR MATERIA (BORRADO SUAVE -> PAPELERA)
 // ============================================================
 /**
- * Elimina una materia del usuario autenticado.
- * Cumple con la HU05 (eliminar materias).
- *
- * IMPORTANTE: gracias al "onDelete: Cascade" en mi schema.prisma,
- * al borrar la materia se borran AUTOMÁTICAMENTE todas sus tareas
- * asociadas. No necesito borrarlas manualmente.
+ * "Elimina" una materia: le pongo deletedAt y hago lo mismo con sus
+ * tareas activas, para que la materia se lleve sus tareas a la
+ * Papelera. Desde ahi se puede restaurar todo junto o borrarlo
+ * definitivamente. Cumple con la HU05.
  */
 export async function remove(usuarioId: number, materiaId: number) {
-  // Verifico que la materia exista y sea del usuario.
   await findOne(usuarioId, materiaId);
 
-  await prisma.materia.delete({
-    where: { id: materiaId },
-  });
+  const ahora = new Date();
 
-  logger.info(`Materia ${materiaId} eliminada por usuario ${usuarioId}`);
+  // Transaccion: la materia y sus tareas se marcan con la MISMA fecha.
+  await prisma.$transaction([
+    prisma.tarea.updateMany({
+      where: { materiaId, deletedAt: null },
+      data: { deletedAt: ahora },
+    }),
+    prisma.materia.update({
+      where: { id: materiaId },
+      data: { deletedAt: ahora },
+    }),
+  ]);
+
+  logger.info(
+    `Materia ${materiaId} movida a la papelera por usuario ${usuarioId}`
+  );
+}
+
+// ============================================================
+// HELPER: BUSCAR UNA MATERIA EN LA PAPELERA
+// ============================================================
+async function findEnPapelera(usuarioId: number, materiaId: number) {
+  const materia = await prisma.materia.findFirst({
+    where: { id: materiaId, usuarioId, deletedAt: { not: null } },
+  });
+  if (!materia) {
+    throw new AppError('Materia no encontrada en la papelera', 404);
+  }
+  return materia;
+}
+
+// ============================================================
+// RESTAURAR MATERIA
+// ============================================================
+/**
+ * Saca una materia de la Papelera y, con ella, todas sus tareas que
+ * tambien esten en la Papelera (deletedAt = null en todo).
+ */
+export async function restore(usuarioId: number, materiaId: number) {
+  await findEnPapelera(usuarioId, materiaId);
+
+  await prisma.$transaction([
+    prisma.tarea.updateMany({
+      where: { materiaId, deletedAt: { not: null } },
+      data: { deletedAt: null },
+    }),
+    prisma.materia.update({
+      where: { id: materiaId },
+      data: { deletedAt: null },
+    }),
+  ]);
+
+  logger.info(`Materia ${materiaId} restaurada por usuario ${usuarioId}`);
+}
+
+// ============================================================
+// ELIMINAR MATERIA DEFINITIVAMENTE
+// ============================================================
+/**
+ * Borrado real (irreversible). Solo desde la Papelera. El
+ * onDelete: Cascade se lleva tareas, subtareas, notas y recordatorios.
+ */
+export async function removePermanent(usuarioId: number, materiaId: number) {
+  await findEnPapelera(usuarioId, materiaId);
+
+  await prisma.materia.delete({ where: { id: materiaId } });
+
+  logger.info(
+    `Materia ${materiaId} eliminada DEFINITIVAMENTE por usuario ${usuarioId}`
+  );
 }

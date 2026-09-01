@@ -84,4 +84,20 @@ router.delete(
   tasksController.remove
 );
 
+// ============================================================
+// PAPELERA
+// ============================================================
+// POST   /api/v1/tasks/:id/restore    -> sacar de la papelera
+// DELETE /api/v1/tasks/:id/permanent  -> borrar para siempre
+router.post(
+  '/:id/restore',
+  validate(taskIdParamSchema, 'params'),
+  tasksController.restore
+);
+router.delete(
+  '/:id/permanent',
+  validate(taskIdParamSchema, 'params'),
+  tasksController.removePermanent
+);
+
 export default router;
