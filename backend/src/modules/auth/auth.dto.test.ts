@@ -3,7 +3,11 @@
 // ============================================================
 
 import { describe, it, expect } from 'vitest';
-import { registerSchema, loginSchema } from './auth.dto';
+import {
+  registerSchema,
+  loginSchema,
+  deleteAccountSchema,
+} from './auth.dto';
 
 describe('registerSchema', () => {
   const base = {
@@ -62,5 +66,25 @@ describe('loginSchema', () => {
     expect(
       loginSchema.safeParse({ email: 'manu@academix.dev', password: '' }).success
     ).toBe(false);
+  });
+});
+
+describe('deleteAccountSchema', () => {
+  it('exige la confirmación exacta "ELIMINAR"', () => {
+    expect(deleteAccountSchema.safeParse({ confirmacion: 'ELIMINAR' }).success).toBe(
+      true
+    );
+    expect(deleteAccountSchema.safeParse({ confirmacion: 'eliminar' }).success).toBe(
+      false
+    );
+    expect(deleteAccountSchema.safeParse({}).success).toBe(false);
+  });
+
+  it('acepta password opcional', () => {
+    const r = deleteAccountSchema.safeParse({
+      confirmacion: 'ELIMINAR',
+      password: 'Secreta123',
+    });
+    expect(r.success && r.data.password).toBe('Secreta123');
   });
 });

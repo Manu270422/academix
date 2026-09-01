@@ -115,9 +115,27 @@ export const changePasswordSchema = z.object({
 });
 
 // ============================================================
+// ESQUEMA: ELIMINAR CUENTA
+// ============================================================
+// Doble seguro para una acción irreversible:
+//   - "confirmacion" debe ser exactamente la palabra ELIMINAR.
+//   - "password" es la contraseña actual. Es opcional en el esquema
+//     porque las cuentas sociales (Google/Facebook) no tienen; el
+//     servicio la exige solo si la cuenta SÍ tiene contraseña.
+export const deleteAccountSchema = z.object({
+  password: z.string().optional(),
+  confirmacion: z.literal('ELIMINAR', {
+    errorMap: () => ({
+      message: 'Escribe ELIMINAR (en mayúsculas) para confirmar',
+    }),
+  }),
+});
+
+// ============================================================
 // TIPOS DERIVADOS
 // ============================================================
 export type RegisterDto = z.infer<typeof registerSchema>;
+export type DeleteAccountDto = z.infer<typeof deleteAccountSchema>;
 export type LoginDto = z.infer<typeof loginSchema>;
 export type GoogleLoginDto = z.infer<typeof googleLoginSchema>;
 export type FacebookLoginDto = z.infer<typeof facebookLoginSchema>;

@@ -16,6 +16,7 @@ import {
   refreshSchema,
   updateProfileSchema,
   changePasswordSchema,
+  deleteAccountSchema,
 } from './auth.dto';
 
 const router = Router();
@@ -66,6 +67,17 @@ router.post(
   authenticate,
   validate(changePasswordSchema),
   authController.changePassword
+);
+
+// GET /api/v1/auth/me/export - descargar todos mis datos (Categoria 3)
+router.get('/me/export', authenticate, authController.exportData);
+
+// DELETE /api/v1/auth/me - eliminar mi cuenta y todos mis datos (Categoria 3)
+router.delete(
+  '/me',
+  authenticate,
+  validate(deleteAccountSchema),
+  authController.deleteAccount
 );
 
 export default router;

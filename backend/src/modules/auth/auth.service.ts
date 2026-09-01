@@ -387,3 +387,127 @@ export async function changePassword(
 
   logger.info(`Contraseña cambiada: usuario ${userId}`);
 }
+// ============================================================
+// EXPORTAR MIS DATOS (Categoria 3)
+// ============================================================
+/**
+ * Devuelve TODO lo que Academix guarda del usuario, en un unico
+ * objeto JSON. El frontend lo ofrece como descarga.
+ *
+ * Es una buena practica de privacidad (el usuario es dueno de sus
+ * datos y puede llevarselos) y ademas util como respaldo.
+ */
+export async function exportarDatos(userId: number) {
+  const usuario = await prisma.usuario.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      nombre: true,
+      email: true,
+      proveedorAuth: true,
+      createdAt: true,
+      updatedAt: true,
+      materias: {
+        orderBy: { createdAt: 'asc' },
+        select: {
+          id: true,
+          nombre: true,
+          color: true,
+          descripcion: true,
+          createdAt: true,
+          updatedAt: true,
+          notas: {
+            orderBy: { createdAt: 'asc' },
+            select: {
+              id: true,
+              contenido: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          tareas: {
+            orderBy: { fechaEntrega: 'asc' },
+            select: {
+              id: true,
+              titulo: true,
+              descripcion: true,
+              fechaEntrega: true,
+              estado: true,
+              prioridad: true,
+              createdAt: true,
+              updatedAt: true,
+              subtareas: {
+                orderBy: { orden: 'asc' },
+                select: { id: true, titulo: true, completada: true, orden: true },
+              },
+              recordatorios: {
+                select: {
+                  anticipacionHoras: true,
+                  enviadoEmail: true,
+                  fechaEnvioEmail: true,
+                  leidoEnApp: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!usuario) {
+    throw new AppError('Usuario no encontrado', 404);
+  }
+
+  return {
+    formato: 'academix-export',
+    version: 1,
+    exportadoEl: new Date().toISOString(),
+    usuario,
+  };
+}
+
+// ============================================================
+// ELIMINAR MI CUENTA (Categoria 3)
+// ============================================================
+/**
+ * Borra la cuenta del usuario y, por el onDelete: Cascade del
+ * schema, TODO lo suyo: materias, tareas, subtareas, notas,
+ * recordatorios y suscripciones push.
+ *
+ * Es IRREVERSIBLE. Por eso el controller exige la palabra ELIMINAR
+ * y, si la cuenta tiene contrasena, tambien la contrasena actual.
+ */
+export async function eliminarCuenta(
+  userId: number,
+  password?: string
+): Promise<void> {
+  const usuario = await prisma.usuario.findUnique({ where: { id: userId } });
+
+  if (!usuario) {
+    throw new AppError('Usuario no encontrado', 404);
+  }
+
+  // Si la cuenta usa contrasena, la exijo para confirmar identidad.
+  // Las cuentas sociales (Google/Facebook) no tienen, asi que se
+  // salta este paso.
+  if (usuario.passwordHash) {
+    if (!password) {
+      throw new AppError(
+        'Debes ingresar tu contraseña para eliminar la cuenta',
+        400
+      );
+    }
+    const passwordValida = await comparePassword(
+      password,
+      usuario.passwordHash
+    );
+    if (!passwordValida) {
+      throw new AppError('La contraseña no es correcta', 401);
+    }
+  }
+
+  await prisma.usuario.delete({ where: { id: userId } });
+
+  logger.info(`Cuenta ELIMINADA: usuario ${userId} (${usuario.email})`);
+}

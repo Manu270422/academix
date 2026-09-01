@@ -13,6 +13,7 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { useAuth } from '../hooks/useAuth';
 import { EditarNombreForm } from '../components/perfil/EditarNombreForm';
 import { CambiarPasswordForm } from '../components/perfil/CambiarPasswordForm';
+import { DatosYCuenta } from '../components/perfil/DatosYCuenta';
 
 export function PerfilPage() {
   const { usuario } = useAuth();
@@ -116,6 +117,9 @@ export function PerfilPage() {
           </Link>
         </div>
       </div>
+
+      {/* Descargar mis datos + eliminar cuenta */}
+      <DatosYCuenta />
     </AppLayout>
   );
 }

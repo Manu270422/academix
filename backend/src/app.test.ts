@@ -70,6 +70,18 @@ describe('protección con JWT', () => {
       .send({ titulo: 'Paso 1' });
     expect(res.status).toBe(401);
   });
+
+  it('GET /api/v1/auth/me/export sin token -> 401', async () => {
+    const res = await request(app).get('/api/v1/auth/me/export');
+    expect(res.status).toBe(401);
+  });
+
+  it('DELETE /api/v1/auth/me sin token -> 401', async () => {
+    const res = await request(app)
+      .delete('/api/v1/auth/me')
+      .send({ confirmacion: 'ELIMINAR' });
+    expect(res.status).toBe(401);
+  });
 });
 
 describe('validación de body', () => {

@@ -86,3 +86,26 @@ export async function changePassword(data: {
 }): Promise<void> {
   await apiClient.post('/auth/change-password', data);
 }
+
+/**
+ * GET /auth/me/export
+ * Devuelve todos los datos del usuario (perfil + materias + notas +
+ * tareas + subtareas + recordatorios) para descargarlos.
+ */
+export async function exportarMisDatos(): Promise<unknown> {
+  const response = await apiClient.get<ApiResponse<unknown>>('/auth/me/export');
+  return response.data.data;
+}
+
+/**
+ * DELETE /auth/me
+ * Elimina la cuenta y TODOS los datos. Irreversible.
+ * "confirmacion" debe ser la palabra "ELIMINAR". "password" solo es
+ * necesaria si la cuenta usa contraseña (no para Google/Facebook).
+ */
+export async function eliminarMiCuenta(data: {
+  confirmacion: 'ELIMINAR';
+  password?: string;
+}): Promise<void> {
+  await apiClient.delete('/auth/me', { data });
+}

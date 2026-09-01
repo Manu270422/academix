@@ -12,6 +12,7 @@ import {
   RefreshDto,
   UpdateProfileDto,
   ChangePasswordDto,
+  DeleteAccountDto,
 } from './auth.dto';
 import { getAuthUser } from '../../middlewares/authenticate';
 
@@ -169,6 +170,52 @@ export async function changePassword(
     res.status(200).json({
       success: true,
       message: 'Contraseña cambiada correctamente',
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * GET /api/v1/auth/me/export
+ * Devuelve todos los datos del usuario autenticado en un JSON.
+ */
+export async function exportData(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const authUser = getAuthUser(req);
+    const datos = await authService.exportarDatos(authUser.id);
+    res
+      .status(200)
+      .setHeader(
+        'Content-Disposition',
+        'attachment; filename="academix-mis-datos.json"'
+      )
+      .json({ success: true, data: datos });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * DELETE /api/v1/auth/me
+ * Elimina la cuenta del usuario autenticado y todo lo asociado.
+ */
+export async function deleteAccount(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const authUser = getAuthUser(req);
+    const { password } = req.body as DeleteAccountDto;
+    await authService.eliminarCuenta(authUser.id, password);
+    res.status(200).json({
+      success: true,
+      message: 'Tu cuenta y todos tus datos fueron eliminados',
     });
   } catch (error) {
     next(error);
