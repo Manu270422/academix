@@ -120,6 +120,8 @@
 - Edición de nombre y datos personales
 - Cambio seguro de contraseña
 - Avatar generado automáticamente con iniciales
+- **Descargar mis datos** en un `.json` (portabilidad / respaldo)
+- **Eliminar mi cuenta** con doble confirmación (irreversible)
 
 ---
 
@@ -556,9 +558,9 @@ Este archivo es **obligatorio** para que React Router funcione correctamente al 
 - [x] PWA instalable con consulta offline
 - [x] Suite de tests (Vitest) + CI
 
-### v1.2 — Próximamente
+### v1.2 — En curso
+- [x] Exportar todos mis datos (JSON) y eliminar cuenta
 - [ ] Papelera / borrado suave (recuperar lo eliminado)
-- [ ] Exportar todos mis datos y eliminar cuenta
 - [ ] Estadísticas avanzadas con gráficos
 
 ---

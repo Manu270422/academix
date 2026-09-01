@@ -262,6 +262,8 @@ http://localhost:3000/api/v1
 | `GET` | `/auth/me` | Obtener usuario autenticado | ✓ |
 | `PATCH` | `/auth/me` | Actualizar perfil | ✓ |
 | `POST` | `/auth/change-password` | Cambiar contraseña | ✓ |
+| `GET` | `/auth/me/export` | Descargar todos mis datos (JSON) | ✓ |
+| `DELETE` | `/auth/me` | Eliminar mi cuenta y todos mis datos | ✓ |
 
 ### 📚 Materias
 

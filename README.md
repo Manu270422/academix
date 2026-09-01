@@ -270,9 +270,9 @@ Academix corre en producción en [academix.elmundodemanu.com](https://academix.e
 - ✅ PWA instalable con consulta offline
 - ✅ Suite de tests (Vitest) + CI en GitHub Actions
 
-**v1.2 — Próximamente**
+**v1.2 — En curso**
+- ✅ Exportar todos mis datos (JSON) y eliminar cuenta
 - [ ] Papelera / borrado suave (recuperar materias y tareas eliminadas)
-- [ ] Exportar todos mis datos y eliminar cuenta
 - [ ] Estadísticas avanzadas con gráficos
 
 ## 📄 Licencia
