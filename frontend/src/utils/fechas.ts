@@ -118,3 +118,65 @@ export function dateTimeLocalAIso(valor: string): string {
 export function fechaMinimaParaInput(): string {
   return isoADateTimeLocal(new Date().toISOString());
 }
+
+// ============================================================
+// UTILIDADES PARA EL CALENDARIO SEMANAL
+// ============================================================
+// Yo trabajo la semana de lunes a domingo, que es como la ve un
+// estudiante en Colombia.
+
+/**
+ * Yo devuelvo el lunes (a medianoche) de la semana que contiene la
+ * fecha dada. Con "offsetSemanas" me muevo a semanas anteriores
+ * (-1) o siguientes (+1).
+ */
+export function inicioDeSemana(base: Date, offsetSemanas = 0): Date {
+  const d = new Date(base);
+  d.setHours(0, 0, 0, 0);
+  // getDay(): 0 = domingo, 1 = lunes, ... 6 = sábado.
+  // Yo quiero que el lunes sea el día 0, así que ajusto el domingo a 6.
+  const diaSemana = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - diaSemana + offsetSemanas * 7);
+  return d;
+}
+
+/**
+ * Yo genero los 7 días (Date a medianoche) de la semana que empieza
+ * en "inicio".
+ */
+export function diasDeLaSemana(inicio: Date): Date[] {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(inicio);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+}
+
+/** Yo comparo si dos fechas caen en el mismo día del calendario. */
+export function mismoDia(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+/** Yo saco solo la hora en formato "18:30". */
+export function soloHora(fechaIso: string): string {
+  return new Date(fechaIso).toLocaleTimeString('es-CO', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+}
+
+/** Yo formateo el rango de la semana: "25 ago - 31 ago". */
+export function rangoSemana(inicio: Date): string {
+  const fin = new Date(inicio);
+  fin.setDate(fin.getDate() + 6);
+  const opciones: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+  return `${inicio.toLocaleDateString('es-CO', opciones)} - ${fin.toLocaleDateString(
+    'es-CO',
+    opciones
+  )}`;
+}
