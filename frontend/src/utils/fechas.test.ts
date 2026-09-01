@@ -15,11 +15,13 @@ import {
   rangoSemana,
 } from './fechas';
 
-// Helper: una fecha ISO a N días (y opcionalmente horas) desde ahora.
-function enDias(dias: number, horasExtra = 0): string {
+// Helper: una fecha ISO a N días desde hoy, fijada al mediodía local
+// para que el test no sea sensible a la hora a la que se ejecuta
+// (cerca de medianoche, "+2h" podía saltar de día).
+function enDias(dias: number): string {
   const d = new Date();
   d.setDate(d.getDate() + dias);
-  d.setHours(d.getHours() + horasExtra);
+  d.setHours(12, 0, 0, 0);
   return d.toISOString();
 }
 
@@ -32,21 +34,20 @@ describe('formatearFechaEntrega', () => {
   });
 
   it('reconoce "hoy" como urgente', () => {
-    // +2h para asegurar que sigue siendo hoy pero en el futuro.
-    const r = formatearFechaEntrega(enDias(0, 2));
+    const r = formatearFechaEntrega(enDias(0));
     expect(r.texto.toLowerCase()).toContain('hoy');
     expect(r.esUrgente).toBe(true);
     expect(r.estaVencida).toBe(false);
   });
 
   it('reconoce "mañana" como urgente', () => {
-    const r = formatearFechaEntrega(enDias(1, 2));
+    const r = formatearFechaEntrega(enDias(1));
     expect(r.texto.toLowerCase()).toContain('mañana');
     expect(r.esUrgente).toBe(true);
   });
 
   it('dice "en X días" dentro de la próxima semana', () => {
-    const r = formatearFechaEntrega(enDias(4, 2));
+    const r = formatearFechaEntrega(enDias(4));
     expect(r.texto).toMatch(/en \d+ días/);
     expect(r.esUrgente).toBe(false);
     expect(r.estaVencida).toBe(false);
