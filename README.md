@@ -22,6 +22,7 @@
 
 <br/><br/>
 
+<img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Manu270422/academix/ci.yml?style=flat-square&label=CI&logo=githubactions&logoColor=white" />
 <img alt="Repo size" src="https://img.shields.io/github/repo-size/Manu270422/academix?style=flat-square&color=C084FC&label=tama%C3%B1o" />
 <img alt="Last commit" src="https://img.shields.io/github/last-commit/Manu270422/academix?style=flat-square&color=FFB300&label=%C3%BAltimo%20commit" />
 <img alt="Stars" src="https://img.shields.io/github/stars/Manu270422/academix?style=flat-square&color=34D399&label=stars" />
@@ -95,12 +96,21 @@ No es un ejercicio de clase aislado — es la herramienta que uso yo mismo para 
 |---|---|---|
 | 🔐 | **Autenticación segura** | Registro, login, refresh tokens (JWT) e inicio de sesión con **Google OAuth**. |
 | 📚 | **Gestión de materias** | Creación y organización de asignaturas con colores personalizados. |
+| 📄 | **Detalle de materia** | Página propia por materia: progreso, sus tareas y **apuntes** (notas libres). |
 | ✅ | **Gestión de tareas** | Título, descripción, fecha límite y prioridad (Baja / Media / Alta). |
+| ☑️ | **Subtareas (checklist)** | Divide una entrega grande en pasos concretos y marca su avance. |
+| 🔁 | **Repetir tarea** | Crea varias entregas de una vez (semanal, quincenal o mensual). |
 | 🔄 | **Estados de tareas** | Pendiente, En progreso y Completada, con cambio rápido en un clic. |
-| 🔍 | **Filtros combinables** | Por estado, prioridad y materia, simultáneamente. |
+| 🔍 | **Buscar, filtrar y ordenar** | Búsqueda por texto, filtros combinables y orden por fecha / prioridad. |
+| 🗓️ | **Calendario semanal** | Vista lunes-domingo con **arrastrar y soltar** para reprogramar. |
+| 📆 | **Exportar a calendario** | Descarga tus entregas como `.ics` para Google Calendar / Apple. |
 | ⚠️ | **Alertas de urgencia** | Indicadores visuales para tareas vencidas, que vencen hoy o mañana. |
 | 🔔 | **Recordatorios y notificaciones push** | Avisos automáticos antes del vencimiento de una tarea. |
-| 📊 | **Dashboard** | Estadísticas en tiempo real, accesos rápidos y próximas tareas. |
+| 📊 | **Dashboard** | Tareas urgentes por umbrales, progreso por materia y filtro rápido. |
+| 📈 | **Estadísticas** | Tasa de cumplimiento, racha sin entregas vencidas y ranking de materias. |
+| ⌨️ | **Buscador global** | `Ctrl/Cmd + K` para saltar a cualquier materia, tarea o sección. |
+| 🌗 | **Modo oscuro** | Tema claro / oscuro / según el sistema, recordado entre visitas. |
+| 📲 | **PWA instalable** | "Añadir a la pantalla de inicio" y consulta offline de lo ya cargado. |
 | 👤 | **Perfil de usuario** | Edición de datos personales y cambio seguro de contraseña. |
 | 📱 | **Diseño responsive** | Adaptado a móvil, tablet y escritorio. |
 
@@ -118,6 +128,8 @@ No es un ejercicio de clase aislado — es la herramienta que uso yo mismo para 
 | React Router 7 | Enrutamiento SPA |
 | TanStack Query 5 | Gestión de estado del servidor y caché |
 | Axios | Cliente HTTP con interceptores |
+| vite-plugin-pwa + Workbox | Service worker, manifest y caché offline |
+| Vitest + Testing Library | Tests unitarios y de componentes |
 
 ### Backend
 
@@ -133,6 +145,8 @@ No es un ejercicio de clase aislado — es la herramienta que uso yo mismo para 
 | Helmet + express-rate-limit | Cabeceras de seguridad y límite de peticiones |
 | web-push + node-cron | Notificaciones push y recordatorios programados |
 | Resend | Envío de correos transaccionales |
+| Vitest + supertest | Tests de utilidades, DTOs (Zod) e integración HTTP |
+| GitHub Actions | CI: build + tests en cada push y Pull Request |
 
 </div>
 
@@ -161,7 +175,9 @@ Entidades principales gestionadas con Prisma sobre MySQL:
 |---|---|
 | `Usuario` | Cuenta, credenciales y datos de perfil |
 | `Materia` | Asignaturas del usuario, con color personalizado |
+| `Nota` | Apuntes libres asociados a una materia |
 | `Tarea` | Actividades asociadas a una materia: prioridad, estado, fecha límite |
+| `Subtarea` | Pasos del checklist de una tarea (hecho / no hecho) |
 | `Recordatorio` | Programación de avisos previos al vencimiento de una tarea |
 | `PushSubscription` | Suscripciones del navegador para notificaciones push |
 
@@ -235,7 +251,7 @@ Academix corre en producción en [academix.elmundodemanu.com](https://academix.e
 
 ## 🗺️ Roadmap
 
-**v1.0 — Actual**
+**v1.0 — Base**
 - ✅ Autenticación completa (registro, login, refresh tokens, Google OAuth)
 - ✅ CRUD de materias con colores personalizados
 - ✅ CRUD de tareas con prioridades, estados y fechas
@@ -243,16 +259,20 @@ Academix corre en producción en [academix.elmundodemanu.com](https://academix.e
 - ✅ Dashboard con estadísticas en tiempo real
 - ✅ Diseño responsive (móvil, tablet, escritorio)
 
-**v1.1 — Próximamente**
-- [ ] Modo oscuro (dark mode)
-- [ ] Drag & drop para reordenar tareas
-- [ ] Búsqueda global
-- [ ] Vista de calendario mensual
+**v1.1 — Experiencia del estudiante** ✅
+- ✅ Modo oscuro (claro / oscuro / sistema)
+- ✅ Calendario semanal con arrastrar y soltar
+- ✅ Detalle de materia con progreso y apuntes (notas)
+- ✅ Subtareas (checklist) y repetir tarea
+- ✅ Buscar, filtrar y ordenar tareas · buscador global `Ctrl/Cmd + K`
+- ✅ Exportar entregas a `.ics`
+- ✅ Página de estadísticas (cumplimiento, racha, ranking)
+- ✅ PWA instalable con consulta offline
+- ✅ Suite de tests (Vitest) + CI en GitHub Actions
 
-**v2.0 — Futuro**
-- [ ] PWA instalable con notificaciones push nativas
-- [ ] Modo offline con sincronización
-- [ ] Exportar tareas a PDF
+**v1.2 — Próximamente**
+- [ ] Papelera / borrado suave (recuperar materias y tareas eliminadas)
+- [ ] Exportar todos mis datos y eliminar cuenta
 - [ ] Estadísticas avanzadas con gráficos
 
 ## 📄 Licencia

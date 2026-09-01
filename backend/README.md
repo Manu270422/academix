@@ -57,11 +57,14 @@
 - 📚 **Gestión de materias** — CRUD completo con colores personalizados
 - ✅ **Gestión de tareas** — estados (pendiente / en progreso / completada) y prioridades
 - 🔍 **Filtros avanzados** — por estado, prioridad, materia y rango de fechas
+- ☑️ **Subtareas y notas** — checklist por tarea y apuntes libres por materia
+- 🔁 **Repetir tarea** — crea varias entregas de una vez (semanal / quincenal / mensual)
 - 🛡️ **Validación robusta** — esquemas Zod en todos los endpoints
 - 🗃️ **Base de datos relacional** — MySQL 8 con Prisma ORM y migraciones versionadas
 - 🚀 **TypeScript end-to-end** — tipado fuerte y seguridad en tiempo de desarrollo
 - 📊 **Arquitectura en capas** — rutas → controladores → servicios → datos
 - 🔒 **Seguridad multicapa** — bcrypt, Helmet, CORS estricto, prevención IDOR
+- 🧪 **Con tests** — Vitest + supertest (utilidades, DTOs e integración HTTP), en CI
 
 ---
 
@@ -230,6 +233,10 @@ npm run prisma:migrate   # Crea una nueva migración
 npm run prisma:studio    # Abre Prisma Studio (UI visual de la BD)
 npm run prisma:generate  # Regenera el cliente de Prisma
 
+# Tests
+npm test                 # Ejecuta la suite de Vitest una vez
+npm run test:watch       # Vitest en modo watch
+
 # Utilidades
 npm run type-check       # Verifica tipos sin compilar
 npm run lint             # Análisis estático con ESLint
@@ -262,20 +269,37 @@ http://localhost:3000/api/v1
 |--------|----------|-------------|:--------------:|
 | `POST` | `/subjects` | Crear materia | ✓ |
 | `GET` | `/subjects` | Listar materias del usuario | ✓ |
-| `GET` | `/subjects/:id` | Ver detalle de una materia | ✓ |
+| `GET` | `/subjects/:id` | Ver detalle de una materia (incluye sus notas) | ✓ |
 | `PATCH` | `/subjects/:id` | Actualizar materia | ✓ |
 | `DELETE` | `/subjects/:id` | Eliminar materia | ✓ |
+
+### 📝 Notas de una materia
+
+| Método | Endpoint | Descripción | Auth requerida |
+|--------|----------|-------------|:--------------:|
+| `GET` | `/subjects/:materiaId/notes` | Listar apuntes de la materia | ✓ |
+| `POST` | `/subjects/:materiaId/notes` | Crear un apunte | ✓ |
+| `PATCH` | `/subjects/:materiaId/notes/:id` | Editar un apunte | ✓ |
+| `DELETE` | `/subjects/:materiaId/notes/:id` | Eliminar un apunte | ✓ |
 
 ### ✅ Tareas
 
 | Método | Endpoint | Descripción | Auth requerida |
 |--------|----------|-------------|:--------------:|
-| `POST` | `/tasks` | Crear tarea | ✓ |
-| `GET` | `/tasks` | Listar tareas (con filtros) | ✓ |
+| `POST` | `/tasks` | Crear tarea (opcionalmente `repetir` para varias) | ✓ |
+| `GET` | `/tasks` | Listar tareas (con filtros, incluye subtareas) | ✓ |
 | `GET` | `/tasks/:id` | Ver detalle de una tarea | ✓ |
 | `PATCH` | `/tasks/:id` | Actualizar tarea | ✓ |
 | `PATCH` | `/tasks/:id/status` | Cambiar estado de tarea | ✓ |
 | `DELETE` | `/tasks/:id` | Eliminar tarea | ✓ |
+
+### ☑️ Subtareas (checklist de una tarea)
+
+| Método | Endpoint | Descripción | Auth requerida |
+|--------|----------|-------------|:--------------:|
+| `POST` | `/tasks/:tareaId/subtasks` | Añadir un paso | ✓ |
+| `PATCH` | `/tasks/:tareaId/subtasks/:id` | Marcar / renombrar / reordenar | ✓ |
+| `DELETE` | `/tasks/:tareaId/subtasks/:id` | Quitar un paso | ✓ |
 
 **Filtros disponibles en `GET /tasks`:**
 
@@ -431,20 +455,37 @@ academix-backend/
 └───────┬───────┘
         │ 1 : N
         ▼
+┌───────────────┐        ┌───────────────┐
+│     Tarea     │        │     Nota      │
+├───────────────┤        ├───────────────┤
+│ id        PK  │        │ id        PK  │
+│ titulo        │        │ contenido     │
+│ descripcion   │        │ materia_id FK │
+│ fecha_entrega │        │ created_at    │
+│ estado        │        │ updated_at    │
+│ prioridad     │        └───────────────┘
+│ materia_id FK │        (Materia 1 : N Nota)
+│ created_at    │
+│ updated_at    │
+└───────┬───────┘
+        │ 1 : N
+        ▼
 ┌───────────────┐
-│     Tarea     │
+│   Subtarea    │
 ├───────────────┤
 │ id        PK  │
 │ titulo        │
-│ descripcion   │
-│ fecha_entrega │
-│ estado        │
-│ prioridad     │
-│ materia_id FK │
+│ completada    │
+│ orden         │
+│ tarea_id  FK  │
 │ created_at    │
 │ updated_at    │
 └───────────────┘
 ```
+
+> `Tarea` también tiene una relación 1:N con `Recordatorio` (avisos previos al
+> vencimiento) y `Usuario` con `PushSubscription` (navegadores suscritos a push).
+> El esquema completo está en `prisma/schema.prisma`.
 
 ### Gestión de migraciones
 
@@ -526,18 +567,28 @@ CMD ["npm", "start"]
 
 El código incluye comentarios explicando decisiones técnicas no obvias, escritos en primera persona para facilitar la lectura y el mantenimiento.
 
-### Testing *(roadmap)*
+### Testing
+
+La suite usa **Vitest** y **supertest** (`vitest.config.ts`). Cubre lo que **no
+necesita base de datos**:
+
+- Utilidades puras: `utils/jwt` (firma/verificación de tokens), `utils/password`
+  (hash y comparación con bcrypt).
+- Esquemas de validación Zod de cada módulo (`*.dto.ts`).
+- Integración HTTP con `supertest` sobre la app en memoria: respuestas que se
+  resuelven antes de tocar Prisma (validación `422`, auth `401`, `404`, ruta raíz).
+  Los servicios externos (`resend`, `web-push`) se sustituyen por dobles.
 
 ```bash
-# Tests unitarios (en desarrollo)
-npm test
-
-# Tests de integración
-npm run test:integration
-
-# Reporte de cobertura
-npm run test:coverage
+npm test              # Ejecuta todos los tests una vez
+npm run test:watch    # Modo watch
 ```
+
+Se ejecuta en cada push y Pull Request vía GitHub Actions
+(`.github/workflows/ci.yml`).
+
+> Los tests de servicios contra una base de datos de pruebas dedicada quedan
+> como siguiente paso.
 
 > La cobertura de tests está planificada como próxima fase del proyecto.
 

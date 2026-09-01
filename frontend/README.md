@@ -53,7 +53,9 @@
 | ⚡ **Alto rendimiento** | Build ultrarrápido gracias a Vite |
 | 🔄 **Sincronización en tiempo real** | Cache inteligente con TanStack Query |
 | 🎭 **Microinteracciones** | Animaciones y transiciones cuidadas en cada acción |
-| 🌐 **PWA-Ready** | Preparada para convertirse en Progressive Web App |
+| 🌗 **Modo oscuro** | Tema claro / oscuro / según el sistema |
+| 📲 **PWA** | Instalable y con consulta offline (service worker + manifest) |
+| 🧪 **Con tests** | Suite de Vitest + Testing Library, ejecutada en CI |
 
 ---
 
@@ -80,12 +82,39 @@
 - Formato de fechas inteligente ("Vence en 3 días")
 - Ordenamiento automático por urgencia
 
-### 📊 Dashboard
-- Estadísticas actualizadas en tiempo real
-- Alertas de tareas vencidas
-- Sección "Próximas a vencer"
-- Acciones rápidas para crear materia o tarea
-- Saludo dinámico según la hora del día
+### ☑️ Subtareas y recurrencia
+- Checklist por tarea: divide una entrega en pasos y marca su avance
+- Repetir tarea al crearla: semanal, quincenal o mensual (crea N tareas de una vez)
+
+### 🗓️ Calendario semanal
+- Vista lunes–domingo con las tareas repartidas por día y hora
+- **Arrastrar y soltar** una tarea a otro día para reprogramarla (conserva la hora)
+- Botón `+` por día para crear una tarea con la fecha ya puesta
+- Exportar la semana (o la lista filtrada) a un archivo `.ics`
+
+### 📄 Detalle de materia
+- Página propia por materia (`/materias/:id`): barra de progreso y sus tareas
+- **Apuntes**: notas libres por materia, con edición en línea
+
+### 📊 Dashboard y estadísticas
+- Tareas urgentes agrupadas por umbral (6 h / 24 h / 72 h) con filtro rápido
+- Progreso por materia y alerta de tareas vencidas
+- Página de estadísticas: tasa de cumplimiento, racha sin entregas vencidas,
+  cumplimiento de las últimas 8 semanas y ranking de materias
+
+### ⌨️ Buscador global
+- `Ctrl / Cmd + K` abre un buscador para saltar a cualquier materia, tarea o sección
+- Navegación con teclado (↑ ↓ Enter), búsqueda insensible a tildes
+
+### 🌗 Modo oscuro
+- Tres modos: claro, oscuro o "según el sistema"
+- Se recuerda entre visitas y se aplica sin parpadeo al cargar
+
+### 📲 PWA (instalable + offline)
+- "Añadir a la pantalla de inicio" en móvil y escritorio
+- Service worker (vite-plugin-pwa + Workbox) con caché *network-first* de la API:
+  si no hay conexión, muestra lo último cargado
+- Convive con el service worker de notificaciones push existente
 
 ### 👤 Perfil de Usuario
 - Edición de nombre y datos personales
@@ -106,7 +135,9 @@
 | **TanStack Query** | 5.62 | Gestión de estado del servidor y cache |
 | **Axios** | 1.7 | Cliente HTTP con interceptores |
 | **Lucide React** | latest | Librería de iconos modernos |
-| **date-fns** | latest | Utilidades para manejo de fechas |
+| **vite-plugin-pwa** | 1.3 | Service worker, manifest y caché offline (Workbox) |
+| **Vitest** | 2 | Runner de tests |
+| **Testing Library** | latest | Tests de componentes React |
 
 ### Decisiones de arquitectura
 
@@ -235,6 +266,10 @@ npm run preview       # Sirve el build localmente para revisión
 # Calidad de código
 npm run lint          # Ejecuta ESLint sobre el proyecto
 npm run type-check    # Verifica tipos con el compilador de TypeScript
+
+# Tests
+npm test              # Ejecuta la suite de Vitest una vez
+npm run test:watch    # Vitest en modo watch
 ```
 
 ---
@@ -502,45 +537,45 @@ Este archivo es **obligatorio** para que React Router funcione correctamente al 
 
 ## 🗺️ Roadmap
 
-### v1.0 — Versión Actual ✅
+### v1.0 — Base ✅
 - Autenticación completa con refresh tokens
 - CRUD de materias y tareas
 - Dashboard con estadísticas en tiempo real
 - Filtros avanzados combinables
 - Diseño completamente responsive
 
-### v1.1 — Mejoras de UX
-- [ ] Modo oscuro (dark mode)
-- [ ] Drag & drop para reordenar tareas
-- [ ] Atajos de teclado
-- [ ] Búsqueda global
+### v1.1 — Experiencia del estudiante ✅
+- [x] Modo oscuro (claro / oscuro / sistema)
+- [x] Calendario semanal con drag & drop
+- [x] Atajos de teclado y buscador global (`Ctrl/Cmd + K`)
+- [x] Buscar, filtrar y ordenar tareas
+- [x] Detalle de materia con progreso y apuntes
+- [x] Subtareas (checklist) y repetir tarea
+- [x] Página de estadísticas (cumplimiento, racha, ranking)
+- [x] Exportar entregas a `.ics`
+- [x] PWA instalable con consulta offline
+- [x] Suite de tests (Vitest) + CI
 
-### v1.2 — Nuevas Funcionalidades
-- [ ] Vista de calendario mensual
-- [ ] Recordatorios por email
-- [ ] Exportar tareas a PDF
+### v1.2 — Próximamente
+- [ ] Papelera / borrado suave (recuperar lo eliminado)
+- [ ] Exportar todos mis datos y eliminar cuenta
 - [ ] Estadísticas avanzadas con gráficos
-
-### v2.0 — Progressive Web App
-- [ ] Instalable como aplicación nativa (PWA)
-- [ ] Notificaciones push
-- [ ] Modo offline con sincronización en segundo plano
-- [ ] Service Workers
 
 ---
 
-## 🧪 Testing *(próximamente)*
+## 🧪 Testing
+
+La suite usa **Vitest** + **Testing Library** (entorno `jsdom`). La configuración
+vive en `vitest.config.ts`, separada de `vite.config.ts`.
 
 ```bash
-# Tests unitarios con Vitest
-npm run test
-
-# Tests E2E con Playwright
-npm run test:e2e
-
-# Reporte de cobertura
-npm run test:coverage
+npm test              # Ejecuta todos los tests una vez
+npm run test:watch    # Modo watch
 ```
+
+Cubre las utilidades puras (`utils/fechas`, `utils/ics`), componentes de UI y el
+buscador global. Se ejecuta automáticamente en cada push y Pull Request mediante
+GitHub Actions (`.github/workflows/ci.yml`).
 
 ---
 
