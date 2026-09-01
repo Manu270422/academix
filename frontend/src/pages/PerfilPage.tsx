@@ -30,16 +30,16 @@ export function PerfilPage() {
     <AppLayout>
       {/* Cabecera */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 sm:text-3xl">
           Mi perfil
         </h2>
-        <p className="mt-1 text-gray-600">
+        <p className="mt-1 text-gray-600 dark:text-gray-400">
           Gestiona tu información personal y tu seguridad.
         </p>
       </div>
 
       {/* Tarjeta principal con avatar e info de solo lectura */}
-      <div className="mb-6 max-w-3xl rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-6 max-w-3xl rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
         <div className="flex items-center gap-4">
           {/* Avatar grande con iniciales */}
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xl font-semibold text-white">
@@ -48,11 +48,11 @@ export function PerfilPage() {
 
           {/* Info de solo lectura */}
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-xl font-semibold text-gray-900">
+            <h3 className="truncate text-xl font-semibold text-gray-900 dark:text-gray-100">
               {usuario?.nombre}
             </h3>
-            <p className="truncate text-sm text-gray-600">{usuario?.email}</p>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="truncate text-sm text-gray-600 dark:text-gray-400">{usuario?.email}</p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               Cuenta creada el{' '}
               {usuario &&
                 new Date(usuario.createdAt).toLocaleDateString('es-CO', {
@@ -68,22 +68,22 @@ export function PerfilPage() {
       {/* Grid de formularios */}
       <div className="grid max-w-3xl grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Editar nombre */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="mb-1 text-lg font-semibold text-gray-900">
+        <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+          <h3 className="mb-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
             Información personal
           </h3>
-          <p className="mb-4 text-sm text-gray-600">
+          <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
             Actualiza tu nombre. El email no se puede modificar.
           </p>
           <EditarNombreForm />
         </div>
 
         {/* Cambiar contraseña */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="mb-1 text-lg font-semibold text-gray-900">
+        <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+          <h3 className="mb-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
             Seguridad
           </h3>
-          <p className="mb-4 text-sm text-gray-600">
+          <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
             Cambia tu contraseña. Por seguridad, requerimos la actual.
           </p>
           <CambiarPasswordForm />
@@ -93,11 +93,11 @@ export function PerfilPage() {
       {/* Informacion legal: politica de privacidad y terminos de servicio.
           La dejo visible aqui para que el estudiante siempre pueda
           consultarla y este informado de cualquier novedad. */}
-      <div className="mt-6 max-w-3xl rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-1 text-lg font-semibold text-gray-900">
+      <div className="mt-6 max-w-3xl rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+        <h3 className="mb-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
           Información legal
         </h3>
-        <p className="mb-4 text-sm text-gray-600">
+        <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
           Consulta cómo protegemos tu información y las reglas de uso
           de Academix.
         </p>

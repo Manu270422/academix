@@ -159,7 +159,7 @@ export function RegisterPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-800">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent"></div>
       </div>
     );
@@ -170,15 +170,15 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 to-white px-4 py-8">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 to-white px-4 py-8 dark:from-gray-950 dark:to-gray-900">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-brand-700">Academix</h1>
-          <p className="mt-2 text-gray-600">Crea tu cuenta gratis</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Crea tu cuenta gratis</p>
         </div>
 
-        <div className="rounded-lg bg-white p-6 shadow-md sm:p-8">
-          <h2 className="mb-6 text-2xl font-semibold text-gray-800">
+        <div className="rounded-lg bg-white dark:bg-gray-900 p-6 shadow-md sm:p-8">
+          <h2 className="mb-6 text-2xl font-semibold text-gray-800 dark:text-gray-100">
             Crear cuenta
           </h2>
 
@@ -195,9 +195,9 @@ export function RegisterPage() {
           </div>
 
           <div className="my-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-gray-200" />
-            <span className="text-xs text-gray-400">o con tu correo</span>
-            <div className="h-px flex-1 bg-gray-200" />
+            <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+            <span className="text-xs text-gray-400 dark:text-gray-500">o con tu correo</span>
+            <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
           </div>
 
           <form onSubmit={form.handleSubmit} className="space-y-4" noValidate>
@@ -258,7 +258,7 @@ export function RegisterPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
             Ya tienes cuenta?{' '}
             <Link
               to="/login"
@@ -270,10 +270,10 @@ export function RegisterPage() {
         </div>
 
         {/* Footer con el creador y los links legales */}
-        <p className="mt-6 text-center text-xs text-gray-500">
+        <p className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
           Academix - Carlos Manuel Turizo Hernández - SENA ADSO
         </p>
-        <p className="mt-2 text-center text-xs text-gray-400">
+        <p className="mt-2 text-center text-xs text-gray-400 dark:text-gray-500">
           <Link to="/privacidad" className="hover:underline">
             Política de Privacidad
           </Link>

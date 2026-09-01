@@ -28,10 +28,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   // Sin esto, habria un parpadeo de "no autenticado" antes de cargar.
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-800">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Cargando...</p>
         </div>
       </div>
     );

@@ -6,18 +6,18 @@
 
 export function TerminosServicioPage() {
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-12">
-      <div className="mx-auto max-w-3xl rounded-lg bg-white p-6 shadow-sm sm:p-10">
-        <h1 className="text-3xl font-bold text-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-800 px-4 py-12">
+      <div className="mx-auto max-w-3xl rounded-lg bg-white dark:bg-gray-900 p-6 shadow-sm sm:p-10">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
           Términos de Servicio de Academix
         </h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
           Última actualización: 18 de agosto de 2026
         </p>
 
-        <div className="mt-8 space-y-6 text-gray-700">
+        <div className="mt-8 space-y-6 text-gray-700 dark:text-gray-300">
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               1. Qué es Academix
             </h2>
             <p className="mt-2">
@@ -28,7 +28,7 @@ export function TerminosServicioPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               2. Uso aceptable
             </h2>
             <p className="mt-2">
@@ -40,7 +40,7 @@ export function TerminosServicioPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               3. Tu cuenta
             </h2>
             <p className="mt-2">
@@ -52,7 +52,7 @@ export function TerminosServicioPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               4. Disponibilidad del servicio
             </h2>
             <p className="mt-2">
@@ -64,7 +64,7 @@ export function TerminosServicioPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               5. Cambios a estos términos
             </h2>
             <p className="mt-2">
@@ -75,7 +75,7 @@ export function TerminosServicioPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               6. Contacto
             </h2>
             <p className="mt-2">

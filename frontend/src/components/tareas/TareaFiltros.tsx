@@ -39,12 +39,12 @@ export function TareaFiltros({
   const filtrosActivos = Object.keys(filtros).length;
 
   const selectClasses =
-    'rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500';
+    'rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500';
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3 shadow-sm">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-medium text-gray-700">Filtros:</span>
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filtros:</span>
 
         {/* Filtro por estado */}
         <select

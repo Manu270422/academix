@@ -9,18 +9,18 @@
 
 export function PoliticaPrivacidadPage() {
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-12">
-      <div className="mx-auto max-w-3xl rounded-lg bg-white p-6 shadow-sm sm:p-10">
-        <h1 className="text-3xl font-bold text-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-800 px-4 py-12">
+      <div className="mx-auto max-w-3xl rounded-lg bg-white dark:bg-gray-900 p-6 shadow-sm sm:p-10">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
           Política de Privacidad de Academix
         </h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
           Última actualización: 18 de agosto de 2026
         </p>
 
-        <div className="mt-8 space-y-6 text-gray-700">
+        <div className="mt-8 space-y-6 text-gray-700 dark:text-gray-300">
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               1. Qué información recopilamos
             </h2>
             <p className="mt-2">
@@ -36,7 +36,7 @@ export function PoliticaPrivacidadPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               2. Para qué usamos tu información
             </h2>
             <p className="mt-2">
@@ -50,7 +50,7 @@ export function PoliticaPrivacidadPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               3. Con quién compartimos información
             </h2>
             <p className="mt-2">
@@ -71,7 +71,7 @@ export function PoliticaPrivacidadPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               4. Cómo protegemos tu información
             </h2>
             <p className="mt-2">
@@ -82,7 +82,7 @@ export function PoliticaPrivacidadPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               5. Tus derechos sobre tu información
             </h2>
             <p className="mt-2">
@@ -94,7 +94,7 @@ export function PoliticaPrivacidadPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               6. Contacto
             </h2>
             <p className="mt-2">

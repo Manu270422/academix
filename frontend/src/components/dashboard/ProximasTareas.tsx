@@ -28,9 +28,9 @@ export function ProximasTareas({ tareas }: ProximasTareasProps) {
     .slice(0, 5);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-gray-200 px-5 py-3">
-        <h3 className="text-base font-semibold text-gray-900">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+      <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-5 py-3">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
           Proximas a vencer
         </h3>
         <Link
@@ -45,15 +45,15 @@ export function ProximasTareas({ tareas }: ProximasTareasProps) {
       {proximas.length === 0 ? (
         <div className="px-5 py-8 text-center">
           <div className="mb-2 text-4xl">🎉</div>
-          <p className="text-sm font-medium text-gray-900">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
             Todo al día!
           </p>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             No tienes tareas pendientes por ahora.
           </p>
         </div>
       ) : (
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-gray-100 dark:divide-gray-800">
           {proximas.map((tarea) => {
             const fechaInfo = formatearFechaEntrega(tarea.fechaEntrega);
             const colorMateria = tarea.materia?.color ?? '#9CA3AF';
@@ -61,7 +61,7 @@ export function ProximasTareas({ tareas }: ProximasTareasProps) {
             return (
               <li
                 key={tarea.id}
-                className="flex items-center gap-3 px-5 py-3 transition hover:bg-gray-50"
+                className="flex items-center gap-3 px-5 py-3 transition hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 {/* Punto de color de la materia */}
                 <span
@@ -72,10 +72,10 @@ export function ProximasTareas({ tareas }: ProximasTareasProps) {
 
                 {/* Contenido principal */}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">
+                  <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
                     {tarea.titulo}
                   </p>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     {tarea.materia?.nombre}
                   </p>
                 </div>
@@ -88,7 +88,7 @@ export function ProximasTareas({ tareas }: ProximasTareasProps) {
                         ? 'text-red-600'
                         : fechaInfo.esUrgente
                         ? 'text-amber-700'
-                        : 'text-gray-600'
+                        : 'text-gray-600 dark:text-gray-400'
                     }`}
                   >
                     {fechaInfo.texto}

@@ -136,7 +136,7 @@ export function MateriaForm({
       {/* Picker de color: una grilla de circulos clickeables.
           El seleccionado tiene un anillo alrededor para distinguirlo. */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
+        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
           Color
         </label>
         <div className="flex flex-wrap gap-2">
@@ -149,7 +149,7 @@ export function MateriaForm({
                 h-9 w-9 rounded-full border-2 transition
                 ${
                   colorSeleccionado === color.hex
-                    ? 'border-gray-900 scale-110'
+                    ? 'border-gray-900 dark:border-gray-100 scale-110'
                     : 'border-transparent hover:scale-105'
                 }
               `}
@@ -167,7 +167,7 @@ export function MateriaForm({
       <div>
         <label
           htmlFor="descripcion"
-          className="mb-1.5 block text-sm font-medium text-gray-700"
+          className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           Descripción (opcional)
         </label>
@@ -185,7 +185,7 @@ export function MateriaForm({
             ${
               form.errors.descripcion
                 ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-                : 'border-gray-300 focus:border-brand-500 focus:ring-brand-200'
+                : 'border-gray-300 dark:border-gray-700 focus:border-brand-500 focus:ring-brand-200'
             }
           `}
         />

@@ -82,23 +82,23 @@ export function Modal({
       <div
         className={`
           relative z-10 w-full ${sizeClasses[size]}
-          rounded-lg bg-white shadow-xl
+          rounded-lg bg-white dark:bg-gray-900 shadow-xl
           animate-in fade-in zoom-in-95 duration-150
           max-h-[90vh] overflow-hidden flex flex-col
         `}
       >
         {/* Cabecera con titulo y botón X */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-6 py-4">
           <h3
             id="modal-title"
-            className="text-lg font-semibold text-gray-900"
+            className="text-lg font-semibold text-gray-900 dark:text-gray-100"
           >
             {title}
           </h3>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1 text-gray-400 dark:text-gray-500 transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-400"
             aria-label="Cerrar modal"
           >
             <svg

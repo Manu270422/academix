@@ -13,7 +13,18 @@
   }
 
   body {
-    /* Aplico la fuente Inter a todo el body. */
+    /* Aplico la fuente Inter a todo el body y defino los colores
+       base para modo claro y oscuro. Con esto, aunque una pantalla
+       no tenga fondo propio, nunca se ve un vacio blanco en oscuro. */
     @apply font-sans antialiased text-gray-900 bg-gray-50;
+    @apply dark:text-gray-100 dark:bg-gray-950;
+  }
+
+  /* Suavizo la transicion de color al cambiar de tema para que no
+     sea un salto brusco. Lo dejo solo en elementos de superficie. */
+  body,
+  body * {
+    transition-property: background-color, border-color;
+    transition-duration: 150ms;
   }
 }

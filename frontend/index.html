@@ -20,6 +20,22 @@
          components/auth/BotonGoogle.tsx). Es gratis, de Google. -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
+    <!-- Aplico el tema ANTES de que cargue React para evitar el
+         parpadeo blanco al entrar en modo oscuro. Lee la misma clave
+         de localStorage que el hook useTema(). -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('academix-tema') || 'sistema';
+          var oscuro =
+            t === 'oscuro' ||
+            (t === 'sistema' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', oscuro);
+        } catch (e) {}
+      })();
+    </script>
+
     <title>Academix - Tu Gestor Academico</title>
     <meta name="description" content="Organiza tus materias, tareas y fechas de entrega en un solo lugar." />
   </head>

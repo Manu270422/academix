@@ -105,10 +105,10 @@ export function MateriasPage() {
       {/* Cabecera de la pagina con titulo y boton de accion */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 sm:text-3xl">
             Mis materias
           </h2>
-          <p className="mt-1 text-gray-600">
+          <p className="mt-1 text-gray-600 dark:text-gray-400">
             Gestiona tus asignaturas académicas.
           </p>
         </div>
@@ -139,7 +139,7 @@ export function MateriasPage() {
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="h-36 animate-pulse rounded-lg border border-gray-200 bg-white"
+              className="h-36 animate-pulse rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
             />
           ))}
         </div>

@@ -8,6 +8,10 @@ export default {
     './index.html',
     './src/**/*.{js,ts,jsx,tsx}',
   ],
+  // Activo el modo oscuro por clase: cuando <html> tiene la clase "dark",
+  // se aplican todas las variantes "dark:". Yo controlo esa clase desde
+  // el hook useTema().
+  darkMode: 'class',
   theme: {
     extend: {
       // Aqui defino mi paleta de colores personalizada para Academix.

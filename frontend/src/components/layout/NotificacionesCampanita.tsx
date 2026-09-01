@@ -101,7 +101,7 @@ export function NotificacionesCampanita() {
       <button
         type="button"
         onClick={() => setAbierto((valor) => !valor)}
-        className="relative rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+        className="relative rounded-full p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300"
         aria-label="Notificaciones"
       >
         <Bell className="h-5 w-5" />
@@ -114,9 +114,9 @@ export function NotificacionesCampanita() {
 
       {/* Panel desplegable */}
       {abierto && (
-        <div className="absolute right-0 z-50 mt-2 w-80 rounded-lg border border-gray-200 bg-white shadow-lg">
-          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-            <h3 className="text-sm font-semibold text-gray-900">
+        <div className="absolute right-0 z-50 mt-2 w-80 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg">
+          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 px-4 py-3">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
               Notificaciones
             </h3>
 
@@ -127,7 +127,7 @@ export function NotificacionesCampanita() {
                 type="button"
                 onClick={push.activo ? push.desactivar : push.activar}
                 disabled={push.cargando}
-                className="flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+                className="flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
                 title={
                   push.activo
                     ? 'Desactivar notificaciones del sistema'
@@ -145,14 +145,14 @@ export function NotificacionesCampanita() {
           </div>
 
           {push.error && (
-            <p className="border-b border-gray-100 px-4 py-2 text-xs text-red-600">
+            <p className="border-b border-gray-100 dark:border-gray-800 px-4 py-2 text-xs text-red-600">
               {push.error}
             </p>
           )}
 
           <div className="max-h-96 overflow-y-auto">
             {isLoading && (
-              <p className="px-4 py-6 text-center text-sm text-gray-500">
+              <p className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
                 Cargando...
               </p>
             )}
@@ -173,23 +173,23 @@ export function NotificacionesCampanita() {
                   key={recordatorio.id}
                   type="button"
                   onClick={() => manejarClicNotificacion(recordatorio)}
-                  className={`flex w-full flex-col items-start gap-0.5 border-b border-gray-50 px-4 py-3 text-left transition hover:bg-gray-50 ${
+                  className={`flex w-full flex-col items-start gap-0.5 border-b border-gray-50 dark:border-gray-800 px-4 py-3 text-left transition hover:bg-gray-50 dark:hover:bg-gray-800 ${
                     !recordatorio.leidoEnApp ? 'bg-blue-50/50' : ''
                   }`}
                 >
                   <div className="flex w-full items-center justify-between gap-2">
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {recordatorio.tarea.titulo}
                     </span>
                     {!recordatorio.leidoEnApp && (
                       <span className="h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" />
                     )}
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {recordatorio.tarea.materia.nombre} ·{' '}
                     {textoUmbral(recordatorio.anticipacionHoras)}
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
                     {formatearFechaEnvio(recordatorio.fechaEnvioEmail)}
                   </span>
                 </button>
