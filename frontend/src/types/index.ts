@@ -54,6 +54,19 @@ export interface Materia {
   _count?: {
     tareas: number;
   };
+  // El backend incluye las notas (apuntes) en GET /subjects/:id.
+  notas?: Nota[];
+}
+
+// ============================================================
+// NOTA (apunte de una materia)
+// ============================================================
+export interface Nota {
+  id: number;
+  contenido: string;
+  materiaId: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ============================================================
@@ -79,6 +92,22 @@ export interface Tarea {
     nombre: string;
     color: string | null;
   };
+  // El backend siempre incluye el checklist (puede venir vacio).
+  subtareas?: Subtarea[];
+}
+
+// ============================================================
+// SUBTAREA (checklist de una tarea)
+// ============================================================
+// Un paso concreto dentro de una tarea. Se marca hecho / no hecho.
+export interface Subtarea {
+  id: number;
+  titulo: string;
+  completada: boolean;
+  orden: number;
+  tareaId: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ============================================================

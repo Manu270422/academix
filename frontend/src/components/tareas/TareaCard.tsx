@@ -10,9 +10,11 @@
 //   - Borde lateral con el color de la materia.
 // ============================================================
 
+import { useState } from 'react';
 import type { Tarea } from '../../types';
 import { EstadoBadge } from './EstadoBadge';
 import { PrioridadBadge } from './PrioridadBadge';
+import { SubtareasChecklist } from './SubtareasChecklist';
 import { formatearFechaEntrega } from '../../utils/fechas';
 
 interface TareaCardProps {
@@ -34,12 +36,17 @@ export function TareaCard({
   const fechaInfo = formatearFechaEntrega(tarea.fechaEntrega);
   const completada = tarea.estado === 'COMPLETADA';
 
+  // Checklist (subtareas): resumen y panel plegable.
+  const subtareas = tarea.subtareas ?? [];
+  const hechas = subtareas.filter((s) => s.completada).length;
+  const [checklistAbierto, setChecklistAbierto] = useState(false);
+
   return (
     <div
       className={`
-        group relative overflow-hidden rounded-lg border bg-white shadow-sm transition
+        group relative overflow-hidden rounded-lg border bg-white dark:bg-gray-900 shadow-sm transition
         hover:shadow-md
-        ${completada ? 'border-gray-200 opacity-75' : 'border-gray-200'}
+        ${completada ? 'border-gray-200 dark:border-gray-800 opacity-75' : 'border-gray-200 dark:border-gray-800'}
       `}
     >
       {/* Barra lateral con el color de la materia */}
@@ -62,7 +69,7 @@ export function TareaCard({
             ${
               completada
                 ? 'border-green-500 bg-green-500 text-white'
-                : 'border-gray-300 hover:border-brand-500'
+                : 'border-gray-300 dark:border-gray-700 hover:border-brand-500'
             }
           `}
           aria-label={
@@ -98,7 +105,7 @@ export function TareaCard({
             <h3
               className={`
                 text-base font-semibold
-                ${completada ? 'text-gray-500 line-through' : 'text-gray-900'}
+                ${completada ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100'}
               `}
             >
               {tarea.titulo}
@@ -110,7 +117,7 @@ export function TareaCard({
               <button
                 type="button"
                 onClick={() => onEdit(tarea)}
-                className="rounded-md p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-brand-600"
+                className="rounded-md p-1.5 text-gray-500 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-brand-600"
                 aria-label="Editar tarea"
                 title="Editar"
               >
@@ -133,7 +140,7 @@ export function TareaCard({
               <button
                 type="button"
                 onClick={() => onDelete(tarea)}
-                className="rounded-md p-1.5 text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+                className="rounded-md p-1.5 text-gray-500 dark:text-gray-400 transition hover:bg-red-50 hover:text-red-600"
                 aria-label="Eliminar tarea"
                 title="Eliminar"
               >
@@ -160,7 +167,7 @@ export function TareaCard({
             <p
               className={`
                 mt-1 line-clamp-2 text-sm
-                ${completada ? 'text-gray-400' : 'text-gray-600'}
+                ${completada ? 'text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400'}
               `}
             >
               {tarea.descripcion}
@@ -171,7 +178,7 @@ export function TareaCard({
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
             {/* Materia */}
             {tarea.materia && (
-              <span className="text-xs font-medium text-gray-700">
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                 {tarea.materia.nombre}
               </span>
             )}
@@ -185,7 +192,7 @@ export function TareaCard({
                     ? 'text-red-600'
                     : fechaInfo.esUrgente && !completada
                     ? 'text-amber-700'
-                    : 'text-gray-600'
+                    : 'text-gray-600 dark:text-gray-400'
                 }
               `}
             >
@@ -209,7 +216,40 @@ export function TareaCard({
             {/* Badges de estado y prioridad */}
             <EstadoBadge estado={tarea.estado} />
             <PrioridadBadge prioridad={tarea.prioridad} />
+
+            {/* Chip del checklist: abre/cierra el panel de subtareas.
+                Siempre visible para poder añadir el primer paso. */}
+            <button
+              type="button"
+              onClick={() => setChecklistAbierto((v) => !v)}
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset transition ${
+                subtareas.length > 0 && hechas === subtareas.length
+                  ? 'bg-green-50 text-green-700 ring-green-200 dark:bg-green-500/15 dark:text-green-300 dark:ring-green-500/30'
+                  : 'bg-gray-50 text-gray-600 ring-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-700 dark:hover:bg-gray-700'
+              }`}
+              aria-expanded={checklistAbierto}
+              title="Checklist de la tarea"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="h-3.5 w-3.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m3.75 12 6 6 10.5-13.5"
+                />
+              </svg>
+              {subtareas.length > 0 ? `${hechas}/${subtareas.length}` : 'Checklist'}
+            </button>
           </div>
+
+          {/* Panel del checklist */}
+          {checklistAbierto && <SubtareasChecklist tarea={tarea} />}
         </div>
       </div>
     </div>

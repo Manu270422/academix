@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import axios from 'axios';
+import type { FrecuenciaRepeticion } from '../../api/tasks.service';
 import { useForm } from '../../hooks/useForm';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -38,6 +39,9 @@ interface TareaFormProps {
   materias: Materia[];
   // Si llego desde una materia especifica (futuro feature), pre-selecciono.
   materiaPreseleccionada?: number;
+  // Si llego desde el calendario haciendo click en un día, pre-relleno la
+  // fecha. Va en formato datetime-local ("2026-09-01T09:00").
+  fechaPreseleccionada?: string;
   onSubmit: (data: CreateTareaPayload | UpdateTareaPayload) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -47,6 +51,7 @@ export function TareaForm({
   tareaInicial,
   materias,
   materiaPreseleccionada,
+  fechaPreseleccionada,
   onSubmit,
   onCancel,
   isSubmitting = false,
@@ -54,13 +59,20 @@ export function TareaForm({
   const isEdicion = Boolean(tareaInicial);
   const [errorBackend, setErrorBackend] = useState<string | null>(null);
 
+  // Repetir tarea: solo tiene sentido al CREAR. Lo manejo con estado
+  // aparte del useForm porque no necesita validación propia.
+  const [repetir, setRepetir] = useState(false);
+  const [frecuencia, setFrecuencia] =
+    useState<FrecuenciaRepeticion>('SEMANAL');
+  const [repeticiones, setRepeticiones] = useState(4);
+
   // Construyo los valores iniciales segun si es edición o creación.
   const valoresIniciales: TareaFormValues = {
     titulo: tareaInicial?.titulo ?? '',
     descripcion: tareaInicial?.descripcion ?? '',
     fechaEntrega: tareaInicial
       ? isoADateTimeLocal(tareaInicial.fechaEntrega)
-      : '',
+      : fechaPreseleccionada ?? '',
     materiaId: tareaInicial
       ? String(tareaInicial.materiaId)
       : materiaPreseleccionada
@@ -125,6 +137,9 @@ export function TareaForm({
             materiaId: Number(values.materiaId),
             estado: values.estado,
             prioridad: values.prioridad,
+            ...(repetir && {
+              repetir: { frecuencia, cantidad: repeticiones },
+            }),
           };
           await onSubmit(payload);
         }
@@ -143,12 +158,12 @@ export function TareaForm({
 
   // Helper para clases base de selects.
   const selectClasses = (hasError: boolean) => `
-    w-full rounded-md border px-3 py-2 text-sm bg-white
+    w-full rounded-md border px-3 py-2 text-sm bg-white dark:bg-gray-900
     transition focus:outline-none focus:ring-2
     ${
       hasError
         ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-        : 'border-gray-300 focus:border-brand-500 focus:ring-brand-200'
+        : 'border-gray-300 dark:border-gray-700 focus:border-brand-500 focus:ring-brand-200'
     }
   `;
 
@@ -172,7 +187,7 @@ export function TareaForm({
       <div>
         <label
           htmlFor="descripcion"
-          className="mb-1.5 block text-sm font-medium text-gray-700"
+          className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           Descripción (opcional)
         </label>
@@ -190,7 +205,7 @@ export function TareaForm({
             ${
               form.errors.descripcion
                 ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
-                : 'border-gray-300 focus:border-brand-500 focus:ring-brand-200'
+                : 'border-gray-300 dark:border-gray-700 focus:border-brand-500 focus:ring-brand-200'
             }
           `}
         />
@@ -211,12 +226,84 @@ export function TareaForm({
         min={isEdicion ? undefined : fechaMinimaParaInput()}
       />
 
+      {/* Repetir tarea: solo al crear. Materializa varias copias. */}
+      {!isEdicion && (
+        <div className="rounded-md border border-gray-200 p-3 dark:border-gray-700">
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <input
+              type="checkbox"
+              checked={repetir}
+              onChange={(e) => setRepetir(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
+            />
+            Repetir esta tarea
+          </label>
+
+          {repetir && (
+            <div className="mt-3 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label
+                    htmlFor="frecuencia"
+                    className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400"
+                  >
+                    Cada
+                  </label>
+                  <select
+                    id="frecuencia"
+                    value={frecuencia}
+                    onChange={(e) =>
+                      setFrecuencia(e.target.value as FrecuenciaRepeticion)
+                    }
+                    className={selectClasses(false)}
+                  >
+                    <option value="SEMANAL">Semana</option>
+                    <option value="QUINCENAL">2 semanas</option>
+                    <option value="MENSUAL">Mes</option>
+                  </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor="repeticiones"
+                    className="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400"
+                  >
+                    Nº de tareas (2–24)
+                  </label>
+                  <input
+                    id="repeticiones"
+                    type="number"
+                    min={2}
+                    max={24}
+                    value={repeticiones}
+                    onChange={(e) =>
+                      setRepeticiones(
+                        Math.max(2, Math.min(24, Number(e.target.value) || 2))
+                      )
+                    }
+                    className={selectClasses(false)}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Se crearán {repeticiones} tareas independientes, una cada{' '}
+                {frecuencia === 'SEMANAL'
+                  ? 'semana'
+                  : frecuencia === 'QUINCENAL'
+                  ? '2 semanas'
+                  : 'mes'}
+                , empezando por la fecha de arriba.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Materia: solo se puede elegir en CREACIÓN.
           En edición la dejo deshabilitada porque el backend no permite cambiarla. */}
       <div>
         <label
           htmlFor="materiaId"
-          className="mb-1.5 block text-sm font-medium text-gray-700"
+          className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           Materia
         </label>
@@ -227,7 +314,7 @@ export function TareaForm({
           onChange={form.handleChange}
           disabled={isEdicion}
           className={`${selectClasses(Boolean(form.errors.materiaId))} ${
-            isEdicion ? 'cursor-not-allowed bg-gray-50' : ''
+            isEdicion ? 'cursor-not-allowed bg-gray-50 dark:bg-gray-800' : ''
           }`}
         >
           {materias.length === 0 ? (
@@ -247,7 +334,7 @@ export function TareaForm({
           <p className="mt-1 text-sm text-red-600">{form.errors.materiaId}</p>
         )}
         {isEdicion && (
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             La materia no se puede cambiar después de crear la tarea.
           </p>
         )}
@@ -258,7 +345,7 @@ export function TareaForm({
         <div>
           <label
             htmlFor="prioridad"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
+            className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             Prioridad
           </label>
@@ -278,7 +365,7 @@ export function TareaForm({
         <div>
           <label
             htmlFor="estado"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
+            className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             Estado
           </label>

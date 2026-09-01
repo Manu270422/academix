@@ -74,6 +74,35 @@ const materiaId = z
   .positive('El id de la materia debe ser un número positivo');
 
 // ============================================================
+// RECURRENCIA (repetir tarea)
+// ============================================================
+// Cuando el estudiante marca "repetir", el backend crea VARIAS
+// tareas independientes de una vez (una por ocurrencia), separadas
+// por la frecuencia elegida. No guardo ninguna "regla" en la BD:
+// materializo las copias y ya. Cada copia se edita/borra sola.
+export const frecuenciaRepeticionEnum = z.enum(
+  ['SEMANAL', 'QUINCENAL', 'MENSUAL'],
+  {
+    errorMap: () => ({
+      message: 'La frecuencia debe ser SEMANAL, QUINCENAL o MENSUAL',
+    }),
+  }
+);
+
+const repetir = z
+  .object({
+    frecuencia: frecuenciaRepeticionEnum,
+    // Total de tareas a crear, contando la primera. Máximo 24 para
+    // no llenar la base de datos sin control.
+    cantidad: z
+      .number({ invalid_type_error: 'La cantidad debe ser un número' })
+      .int('La cantidad debe ser un número entero')
+      .min(2, 'Si repites, deben ser al menos 2')
+      .max(24, 'Máximo 24 repeticiones'),
+  })
+  .optional();
+
+// ============================================================
 // ESQUEMA: CREAR TAREA
 // ============================================================
 // Cumple con la HU06 (registrar tareas asociadas a una materia).
@@ -89,6 +118,8 @@ export const createTaskSchema = z.object({
   // que defini en schema.prisma (PENDIENTE y MEDIA).
   estado: estadoTareaEnum.optional(),
   prioridad: prioridadEnum.optional(),
+  // Opcional: si viene, se crean varias tareas repetidas.
+  repetir,
 });
 
 // ============================================================

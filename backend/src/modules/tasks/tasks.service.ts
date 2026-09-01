@@ -56,48 +56,82 @@ async function verificarMateriaDelUsuario(
  * Crea una nueva tarea asociada a una materia del usuario autenticado.
  * Cumple con la HU06 (registrar tareas con fecha de entrega).
  */
+// Dada la fecha de la primera tarea y la frecuencia, calculo la fecha
+// de la ocurrencia numero "i" (i = 0 es la primera).
+function fechaOcurrencia(
+  base: Date,
+  frecuencia: 'SEMANAL' | 'QUINCENAL' | 'MENSUAL',
+  i: number
+): Date {
+  const d = new Date(base);
+  if (frecuencia === 'SEMANAL') d.setDate(d.getDate() + 7 * i);
+  else if (frecuencia === 'QUINCENAL') d.setDate(d.getDate() + 14 * i);
+  else d.setMonth(d.getMonth() + i); // MENSUAL
+  return d;
+}
+
+// Datos comunes para crear UNA tarea (con sus 3 recordatorios).
+function datosNuevaTarea(data: CreateTaskDto, fechaEntrega: Date) {
+  return {
+    titulo: data.titulo,
+    descripcion: data.descripcion ?? null,
+    fechaEntrega,
+    materiaId: data.materiaId,
+    ...(data.estado && { estado: data.estado }),
+    ...(data.prioridad && { prioridad: data.prioridad }),
+    recordatorios: {
+      create: UMBRALES_RECORDATORIO_HORAS.map((horas) => ({
+        anticipacionHoras: horas,
+      })),
+    },
+  };
+}
+
 export async function create(usuarioId: number, data: CreateTaskDto) {
   // PASO 1: Verifico que la materia destino sea del usuario.
   // Sin esto, alguien podria crear tareas en materias ajenas mandando
   // un materiaId que no le pertenece.
   await verificarMateriaDelUsuario(usuarioId, data.materiaId);
 
-  // PASO 2: Creo la tarea, y junto con ella sus recordatorios: uno
-  // por cada umbral de anticipacion (72h, 24h, 6h - ver
-  // reminders.constants.ts). Uso una transaccion implicita con
-  // "create" anidado para que la tarea y sus 3 recordatorios se
-  // creen juntos o ninguno.
-  // No necesito guardar usuarioId en la tarea: la propiedad se infiere
-  // a traves de la materia (tarea -> materia -> usuario).
-  const tarea = await prisma.tarea.create({
-    data: {
-      titulo: data.titulo,
-      descripcion: data.descripcion ?? null,
-      fechaEntrega: data.fechaEntrega,
-      materiaId: data.materiaId,
-      // Si no se envian, Prisma usa los defaults de schema.prisma.
-      ...(data.estado && { estado: data.estado }),
-      ...(data.prioridad && { prioridad: data.prioridad }),
-      recordatorios: {
-        create: UMBRALES_RECORDATORIO_HORAS.map((horas) => ({
-          anticipacionHoras: horas,
-        })),
-      },
-    },
-    // Incluyo los datos de la materia en la respuesta para que el frontend
-    // no tenga que hacer otra petición para mostrar "Tarea X - Materia Y".
-    include: {
-      materia: {
-        select: { id: true, nombre: true, color: true },
-      },
-    },
-  });
+  const incluirMateria = {
+    materia: { select: { id: true, nombre: true, color: true } },
+  } as const;
 
-  logger.info(
-    `Tarea creada: "${tarea.titulo}" (id: ${tarea.id}) en materia ${tarea.materiaId}`
+  // ---- CASO SIN REPETICION: creo una sola tarea ----
+  if (!data.repetir) {
+    const tarea = await prisma.tarea.create({
+      data: datosNuevaTarea(data, data.fechaEntrega),
+      include: incluirMateria,
+    });
+    logger.info(
+      `Tarea creada: "${tarea.titulo}" (id: ${tarea.id}) en materia ${tarea.materiaId}`
+    );
+    return { tarea, creadas: 1 };
+  }
+
+  // ---- CASO CON REPETICION: creo N tareas independientes ----
+  // Calculo las fechas de todas las ocurrencias.
+  const { frecuencia, cantidad } = data.repetir;
+  const fechas = Array.from({ length: cantidad }, (_, i) =>
+    fechaOcurrencia(data.fechaEntrega, frecuencia, i)
   );
 
-  return tarea;
+  // $transaction: o se crean TODAS o ninguna.
+  const creadas = await prisma.$transaction(
+    fechas.map((fecha) =>
+      prisma.tarea.create({
+        data: datosNuevaTarea(data, fecha),
+        include: incluirMateria,
+      })
+    )
+  );
+
+  logger.info(
+    `Tarea "${data.titulo}" repetida ${frecuencia} x${cantidad} ` +
+      `(ids: ${creadas.map((t) => t.id).join(', ')}) por usuario ${usuarioId}`
+  );
+
+  return { tarea: creadas[0], creadas: creadas.length };
 }
 
 // ============================================================
@@ -158,6 +192,10 @@ export async function findAll(usuarioId: number, filters: ListTasksQuery) {
       materia: {
         select: { id: true, nombre: true, color: true },
       },
+      // Traigo el checklist de cada tarea, ordenado.
+      subtareas: {
+        orderBy: [{ orden: 'asc' }, { id: 'asc' }],
+      },
     },
   });
 }
@@ -180,6 +218,9 @@ export async function findOne(usuarioId: number, tareaId: number) {
     include: {
       materia: {
         select: { id: true, nombre: true, color: true },
+      },
+      subtareas: {
+        orderBy: [{ orden: 'asc' }, { id: 'asc' }],
       },
     },
   });

@@ -30,12 +30,16 @@ export async function create(
     const usuario = getAuthUser(req);
     const data = req.body as CreateTaskDto;
 
-    const tarea = await tasksService.create(usuario.id, data);
+    const { tarea, creadas } = await tasksService.create(usuario.id, data);
 
     res.status(201).json({
       success: true,
-      message: 'Tarea creada correctamente',
+      message:
+        creadas > 1
+          ? `Se crearon ${creadas} tareas repetidas`
+          : 'Tarea creada correctamente',
       data: tarea,
+      meta: { creadas },
     });
   } catch (error) {
     next(error);

@@ -10,7 +10,7 @@
 //   - Estado vacío diferenciado: sin tareas vs sin materias.
 // ============================================================
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 import { Button } from '../components/ui/Button';
@@ -19,8 +19,13 @@ import { Alert } from '../components/ui/Alert';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { EmptyState } from '../components/ui/EmptyState';
 import { TareaCard } from '../components/tareas/TareaCard';
+import { BotonExportarIcs } from '../components/tareas/BotonExportarIcs';
 import { TareaForm } from '../components/tareas/TareaForm';
 import { TareaFiltros } from '../components/tareas/TareaFiltros';
+import {
+  TareaBusquedaOrden,
+  type OrdenTareas,
+} from '../components/tareas/TareaBusquedaOrden';
 import { useMateriasList } from '../hooks/useMaterias';
 import {
   useTareasList,
@@ -37,8 +42,13 @@ import type {
 } from '../api/tasks.service';
 
 export function TareasPage() {
-  // Estado de filtros.
+  // Estado de filtros (van al backend).
   const [filtros, setFiltros] = useState<TareasFilters>({});
+
+  // Búsqueda y orden: se aplican en el cliente sobre lo que ya trajo
+  // el backend, no son parámetros de la API.
+  const [busqueda, setBusqueda] = useState('');
+  const [orden, setOrden] = useState<OrdenTareas>('fecha');
 
   // Estado de modales.
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -116,6 +126,73 @@ export function TareasPage() {
   const sinTareas = !isLoading && tareas && tareas.length === 0;
 
   // ============================================================
+  // BUSQUEDA + ORDEN (en cliente)
+  // ============================================================
+  // Normalizo texto: minúsculas y sin tildes, para que "quimica"
+  // encuentre "Química".
+  function normalizar(texto: string): string {
+    return texto
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, ''); // quita los acentos combinados
+  }
+
+  // Peso de cada prioridad para poder ordenar (alta primero).
+  const PESO_PRIORIDAD: Record<Tarea['prioridad'], number> = {
+    ALTA: 0,
+    MEDIA: 1,
+    BAJA: 2,
+  };
+
+  const tareasVisibles = useMemo(() => {
+    if (!tareas) return [];
+
+    const q = normalizar(busqueda.trim());
+    const filtradas = q
+      ? tareas.filter((t) => {
+          const enTitulo = normalizar(t.titulo).includes(q);
+          const enDesc = t.descripcion
+            ? normalizar(t.descripcion).includes(q)
+            : false;
+          const enMateria = t.materia
+            ? normalizar(t.materia.nombre).includes(q)
+            : false;
+          return enTitulo || enDesc || enMateria;
+        })
+      : [...tareas];
+
+    filtradas.sort((a, b) => {
+      if (orden === 'prioridad') {
+        const dif = PESO_PRIORIDAD[a.prioridad] - PESO_PRIORIDAD[b.prioridad];
+        if (dif !== 0) return dif;
+        // A igual prioridad, la más próxima a vencer primero.
+        return (
+          new Date(a.fechaEntrega).getTime() -
+          new Date(b.fechaEntrega).getTime()
+        );
+      }
+      if (orden === 'recientes') {
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      }
+      // 'fecha' (por defecto): más próxima a vencer primero.
+      return (
+        new Date(a.fechaEntrega).getTime() - new Date(b.fechaEntrega).getTime()
+      );
+    });
+
+    return filtradas;
+  }, [tareas, busqueda, orden]);
+
+  // La búsqueda dejó la lista vacía aunque sí hay tareas cargadas.
+  const sinResultadosBusqueda =
+    !isLoading &&
+    tareas &&
+    tareas.length > 0 &&
+    tareasVisibles.length === 0;
+
+  // ============================================================
   // RENDER
   // ============================================================
 
@@ -124,30 +201,37 @@ export function TareasPage() {
       {/* Cabecera */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 sm:text-3xl">
             Mis tareas
           </h2>
-          <p className="mt-1 text-gray-600">
+          <p className="mt-1 text-gray-600 dark:text-gray-400">
             Organiza y haz seguimiento de tus actividades académicas.
           </p>
         </div>
-        <Button onClick={abrirModalCreacion} disabled={sinMaterias}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="h-4 w-4"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          Nueva tarea
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Exporta la lista tal como está filtrada ahora mismo. */}
+          <BotonExportarIcs
+            tareas={tareasVisibles}
+            nombreArchivo="academix-tareas.ics"
+          />
+          <Button onClick={abrirModalCreacion} disabled={sinMaterias}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="h-4 w-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            Nueva tarea
+          </Button>
+        </div>
       </div>
 
       {/* CASO ESPECIAL: usuario sin materias.
@@ -183,6 +267,16 @@ export function TareasPage() {
       {/* Si tiene materias, muestro filtros y lista */}
       {!sinMaterias && (
         <>
+          {/* Barra de búsqueda + orden */}
+          <div className="mb-3">
+            <TareaBusquedaOrden
+              busqueda={busqueda}
+              onBusquedaChange={setBusqueda}
+              orden={orden}
+              onOrdenChange={setOrden}
+            />
+          </div>
+
           {/* Barra de filtros */}
           <div className="mb-4">
             <TareaFiltros
@@ -199,7 +293,7 @@ export function TareasPage() {
               {Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-24 animate-pulse rounded-lg border border-gray-200 bg-white"
+                  className="h-24 animate-pulse rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
                 />
               ))}
             </div>
@@ -252,10 +346,23 @@ export function TareasPage() {
             />
           )}
 
+          {/* La búsqueda no encontró nada (pero sí hay tareas cargadas) */}
+          {sinResultadosBusqueda && (
+            <EmptyState
+              title="Sin resultados"
+              description={`Ninguna tarea coincide con "${busqueda.trim()}".`}
+              action={
+                <Button variant="secondary" onClick={() => setBusqueda('')}>
+                  Limpiar búsqueda
+                </Button>
+              }
+            />
+          )}
+
           {/* Lista de tareas */}
-          {!isLoading && tareas && tareas.length > 0 && (
+          {!isLoading && tareasVisibles.length > 0 && (
             <div className="space-y-3">
-              {tareas.map((tarea) => (
+              {tareasVisibles.map((tarea) => (
                 <TareaCard
                   key={tarea.id}
                   tarea={tarea}

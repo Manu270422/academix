@@ -17,6 +17,8 @@ import type {
 // TIPOS DE PAYLOADS
 // ============================================================
 
+export type FrecuenciaRepeticion = 'SEMANAL' | 'QUINCENAL' | 'MENSUAL';
+
 export interface CreateTareaPayload {
   titulo: string;
   descripcion?: string;
@@ -24,6 +26,12 @@ export interface CreateTareaPayload {
   materiaId: number;
   estado?: EstadoTarea;
   prioridad?: Prioridad;
+  // Si viene, el backend crea varias tareas repetidas (una por
+  // ocurrencia). "cantidad" cuenta la primera.
+  repetir?: {
+    frecuencia: FrecuenciaRepeticion;
+    cantidad: number;
+  };
 }
 
 export interface UpdateTareaPayload {

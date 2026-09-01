@@ -13,7 +13,9 @@ import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 // Rutas de los módulos
 import authRoutes from './modules/auth/auth.routes';
 import subjectsRoutes from './modules/subjects/subjects.routes';
+import notesRoutes from './modules/notes/notes.routes';
 import tasksRoutes from './modules/tasks/tasks.routes';
+import subtasksRoutes from './modules/subtasks/subtasks.routes';
 import remindersRoutes from './modules/reminders/reminders.routes';
 import pushRoutes from './modules/push/push.routes';
 
@@ -64,10 +66,9 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-if (env.isDevelopment) {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined'));
+// En los tests no quiero el ruido de los logs de peticiones.
+if (env.nodeEnv !== 'test') {
+  app.use(morgan(env.isDevelopment ? 'dev' : 'combined'));
 }
 
 // ============================================================
@@ -104,7 +105,11 @@ app.get('/health', async (_req: Request, res: Response, next: NextFunction) => {
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/subjects', subjectsRoutes);
+// Notas (apuntes) anidadas bajo una materia.
+app.use('/api/v1/subjects/:materiaId/notes', notesRoutes);
 app.use('/api/v1/tasks', tasksRoutes);
+// Subtareas (checklist) anidadas bajo una tarea.
+app.use('/api/v1/tasks/:tareaId/subtasks', subtasksRoutes);
 app.use('/api/v1/reminders', remindersRoutes);
 app.use('/api/v1/push', pushRoutes);
 

@@ -121,8 +121,36 @@ model Materia {
   // RELACION: una materia puede tener MUCHAS tareas (1 a N).
   tareas Tarea[]
 
+  // RELACION: una materia puede tener MUCHAS notas (apuntes sueltos).
+  notas Nota[]
+
   @@index([usuarioId])
   @@map("materias")
+}
+
+// ============================================================
+// MODELO NOTA
+// ============================================================
+// Apuntes sueltos que el estudiante escribe sobre una materia
+// ("clase del 3 de sep: repasar limites", "el profe dijo que el
+// parcial es acumulativo", etc). No van dentro de una tarea: son
+// de la materia en general.
+model Nota {
+  id Int @id @default(autoincrement())
+
+  // Texto libre. La primera línea hace de "título" en la interfaz.
+  contenido String @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // RELACION: cada nota pertenece a UNA materia. Si se borra la
+  // materia, se borran sus notas (cascade).
+  materiaId Int     @map("materia_id")
+  materia   Materia @relation(fields: [materiaId], references: [id], onDelete: Cascade)
+
+  @@index([materiaId])
+  @@map("notas")
 }
 
 // ============================================================
@@ -157,10 +185,44 @@ model Tarea {
   // segun se acerca la fecha, en vez de un solo aviso.
   recordatorios Recordatorio[]
 
+  // RELACION: una tarea puede tener VARIAS subtareas (1 a N). Es el
+  // "checklist" para partir una entrega grande en pasos concretos
+  // (ej. "Ensayo" -> leer, redactar, revisar bibliografia).
+  subtareas Subtarea[]
+
   @@index([materiaId])
   @@index([fechaEntrega])
   @@index([estado])
   @@map("tareas")
+}
+
+// ============================================================
+// MODELO SUBTAREA
+// ============================================================
+// Un paso concreto dentro de una tarea. El estudiante lo marca
+// como hecho o no hecho. No tiene fecha ni prioridad propia: es
+// solo una casilla del checklist de su tarea "padre".
+model Subtarea {
+  id Int @id @default(autoincrement())
+
+  titulo String @db.VarChar(200)
+
+  completada Boolean @default(false)
+
+  // Posicion dentro del checklist, para poder mostrarlas y
+  // reordenarlas en el orden que el estudiante quiera.
+  orden Int @default(0)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // RELACION: cada subtarea pertenece a UNA tarea. Si se borra la
+  // tarea, se borran sus subtareas (cascade).
+  tareaId Int   @map("tarea_id")
+  tarea   Tarea @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+
+  @@index([tareaId])
+  @@map("subtareas")
 }
 
 // ============================================================
@@ -188,7 +250,7 @@ model Recordatorio {
 
   // Cuento los intentos de envio fallidos. Maximo 3 (ver reminders.service.ts).
   intentosEnvio Int     @default(0) @map("intentos_envio")
-  ultimoError   String? @db.Text @map("ultimo_error")
+  ultimoError   String? @map("ultimo_error") @db.Text
 
   // Cuando llega a 3 intentos fallidos, marco esto en true para que
   // el cron deje de intentar enviarlo en cada ciclo.
